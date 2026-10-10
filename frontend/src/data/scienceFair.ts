@@ -25,6 +25,13 @@ export const scienceFair: Story = {
         },
         { id: 4, text: 'Omar nodded and went inside.' },
       ],
+      quiz: {
+        question: "What did Omar's sister mean when she said “Break a leg”?",
+        options: ['Good luck.', 'Be careful not to fall.', 'Go back home.'],
+        answerIndex: 0,
+        evidenceSentenceId: 3,
+        why: '“Break a leg” is a saying that means “good luck”. She said it as he went in to show his project.',
+      },
     },
     {
       id: 's2',
@@ -38,6 +45,13 @@ export const scienceFair: Story = {
           marker: { type: 'feeling' },
         },
       ],
+      quiz: {
+        question: 'When Omar said “Oh, great,” how did he probably feel?',
+        options: ['Happy', 'Annoyed', 'Sleepy'],
+        answerIndex: 1,
+        evidenceSentenceId: 8,
+        why: 'He was frowning, and his volcano did not work. Here “Oh, great” means the opposite of its words.',
+      },
     },
     {
       id: 's3',
@@ -50,6 +64,13 @@ export const scienceFair: Story = {
         },
         { id: 11, text: 'A judge wrote something on her clipboard and smiled.' },
       ],
+      quiz: {
+        question: 'Why did the volcano finally foam over the sides?',
+        options: ['The judge touched it.', 'Omar shook the table.', 'Omar added the baking soda.'],
+        answerIndex: 2,
+        evidenceSentenceId: 10,
+        why: '“It” is the baking soda from the sentence before. The volcano foamed only after he added it.',
+      },
     },
   ],
 }

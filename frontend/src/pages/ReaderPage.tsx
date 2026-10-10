@@ -6,6 +6,7 @@ import { BookmarkButton } from '../components/BookmarkButton'
 import { Button } from '../components/Button'
 import { Cover } from '../components/Cover'
 import { HelpCard } from '../components/HelpCard'
+import { QuizPanel } from '../components/QuizPanel'
 import { Placeholder } from '../components/Placeholder'
 import { ProgressBar } from '../components/ProgressBar'
 import { SentenceText } from '../components/SentenceText'
@@ -57,6 +58,9 @@ function Reader({ story }: { story: Story }) {
     return Math.min(saved, story.sections.length - 1)
   })
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [quizOpen, setQuizOpen] = useState(false)
+  const [quizFeedback, setQuizFeedback] = useState(false)
+  const quizButton = useRef<HTMLButtonElement>(null)
   const [panel, setPanel] = useState<Panel | null>(null)
   const latest = useRef(0)
 
@@ -68,7 +72,13 @@ function Reader({ story }: { story: Story }) {
   const parts = at
     ? [section.sentences.slice(0, at), section.sentences.slice(at)]
     : [section.sentences]
-  const quote = found ? panel.explanation?.clue_quote.replace(/^[\s."]+|[\s."]+$/g, '') : undefined
+  const evidence = section.sentences.find((s) => s.id === section.quiz?.evidenceSentenceId)?.text
+  // The help card's clue, or the quiz evidence while quiz feedback shows, is underlined in the story.
+  const quote = found
+    ? panel.explanation?.clue_quote.replace(/^[\s."]+|[\s."]+$/g, '')
+    : quizFeedback
+      ? evidence?.replace(/^[\s."]+|[\s."]+$/g, '')
+      : undefined
 
   useEffect(() => {
     saveLastRead({ storyId: story.id, sectionIndex })
@@ -104,6 +114,8 @@ function Reader({ story }: { story: Story }) {
     latest.current++
     setPanel(null)
     setSelectedId(null)
+    setQuizOpen(false)
+    setQuizFeedback(false)
     setSectionIndex(sectionIndex + 1)
   }
 
@@ -198,6 +210,22 @@ function Reader({ story }: { story: Story }) {
             ))}
           </div>
 
+          {quizOpen && section.quiz && evidence && (
+            <QuizPanel
+              key={sectionIndex}
+              quiz={section.quiz}
+              evidence={evidence}
+              continueLabel={isLast ? 'Finish' : 'Continue reading'}
+              onFeedback={() => setQuizFeedback(true)}
+              onContinue={next}
+              onClose={() => {
+                setQuizOpen(false)
+                setQuizFeedback(false)
+                quizButton.current?.focus()
+              }}
+            />
+          )}
+
           <footer className="mt-14 border-t border-r-line pt-6">
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
               <div className="flex items-center gap-3">
@@ -210,10 +238,22 @@ function Reader({ story }: { story: Story }) {
                   Section {sectionIndex + 1} of {count}
                 </p>
               </div>
-              <Button variant="reading" onClick={next}>
-                {isLast ? 'Finish' : 'Continue'}
-                <Arrow />
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                {section.quiz && (
+                  <Button
+                    ref={quizButton}
+                    variant="readingSecondary"
+                    aria-expanded={quizOpen}
+                    onClick={() => setQuizOpen(true)}
+                  >
+                    Quiz me on this
+                  </Button>
+                )}
+                <Button variant="reading" onClick={next}>
+                  {isLast ? 'Finish' : 'Continue'}
+                  <Arrow />
+                </Button>
+              </div>
             </div>
             <p className="mb-0 mt-5 flex items-center gap-2 text-[0.875rem] text-r-soft">
               <Lightbulb size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />

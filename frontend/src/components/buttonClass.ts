@@ -1,5 +1,5 @@
-/** `reading` follows the reading theme, so it stays visible on light and night pages. */
-export type Variant = 'primary' | 'secondary' | 'reading'
+/** `reading` and `readingSecondary` follow the reading theme, so they stay visible on night pages. */
+export type Variant = 'primary' | 'secondary' | 'reading' | 'readingSecondary'
 
 /** Shared look for buttons and button-styled links. `group` lets an arrow inside nudge on hover. */
 export const buttonClass = (variant: Variant = 'primary') =>
@@ -10,5 +10,6 @@ export const buttonClass = (variant: Variant = 'primary') =>
       primary: 'border-midnight bg-midnight text-ivory hover:-translate-y-0.5',
       secondary: 'border-line-strong bg-transparent text-midnight hover:border-midnight',
       reading: 'border-r-ink bg-r-ink text-r-bg hover:-translate-y-0.5',
+      readingSecondary: 'border-r-soft bg-transparent text-r-ink hover:border-r-ink',
     }[variant],
   ].join(' ')

@@ -24,7 +24,7 @@ The build has 7 phases:
 1. Foundation, design system, shell — done
 2. Library — done
 3. Reading screen — done (followed by the full redesign described below)
-4. Optional quiz — never forced, never automatic
+4. Optional quiz — done (never forced, never automatic, never scored or stored)
 5. Bring your own reading: paste or upload (.txt, text-based .pdf), sections and AI markers — done
 6. Testing and evaluation (uses `backend/logs/explain.jsonl`)
 7. Case study deliverables: README, notes, video
@@ -176,7 +176,8 @@ spacing, theme, motion (`off` default | `on`), and whether markers show.
 type MarkerType = 'feeling' | 'who' | 'why' | 'idiom' | 'other'
 
 interface Sentence { id: number; text: string; marker?: { type: MarkerType } }
-interface Section  { id: string; sentences: Sentence[] }
+interface Quiz     { question: string; options: [string, string, string]; answerIndex: number; evidenceSentenceId: number; why: string }
+interface Section  { id: string; sentences: Sentence[]; quiz?: Quiz }
 interface Story    { id: string; title: string; description: string; category: string; readMinutes: number; sections: Section[] }
 
 // Must match the backend /explain response exactly
@@ -220,3 +221,17 @@ They work with Continue reading, bookmarks, My Reading and the reading log. Whil
   `max(1, sentences // 3)`. If the model fails, the story comes back without markers.
 - PDF extraction loses blank lines, so a PDF usually becomes one section.
 - Own readings are never added to the built-in library or to the Progress page.
+
+## Optional quiz (Phase 4)
+
+Each library story section has one `quiz` (own readings have none). Questions ask about something
+implied (feeling, who, why, idiom), never a detail to remember; exactly one option is supported by
+the text and the other two are clearly unsupported; `why` is one or two short, literal sentences.
+
+`QuizPanel` opens inline below the section only when the student presses "Quiz me on this" in the
+reading footer; Continue never requires it. Radio options plus "I'm not sure" and "Check answer"
+("Choose an answer first." if nothing is chosen). Feedback is calm and always in words: "Yes.",
+"Not quite. Look at this sentence:" or "Here's a clue:", then the evidence sentence and `why`; the
+evidence is underlined in the story while feedback shows. Then "Continue reading" and "Close".
+Answers stay in component state only: never scored, logged or written to storage (a test checks).
+

@@ -6,9 +6,19 @@ export interface Sentence {
   marker?: { type: MarkerType }
 }
 
+/** An optional check of something the section implies. Never scored or stored. */
+export interface Quiz {
+  question: string
+  options: [string, string, string]
+  answerIndex: number
+  evidenceSentenceId: number
+  why: string
+}
+
 export interface Section {
   id: string
   sentences: Sentence[]
+  quiz?: Quiz
 }
 
 export interface Story {
