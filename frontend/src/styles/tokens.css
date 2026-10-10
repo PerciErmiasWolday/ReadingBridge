@@ -1,0 +1,37 @@
+/*
+ * Austurbane design tokens — the single source of truth.
+ * Tailwind maps to these variables (see tailwind.config.ts).
+ */
+:root {
+  /* Colour */
+  --paper: #f3f1ec; /* page background */
+  --surface: #eae7e0; /* subtle raised areas, e.g. the panel */
+  --ink: #22221f; /* primary text, primary button fill */
+  --ink-soft: #5e5b54; /* secondary text; lightest allowed for readable text */
+  --rule: #d6d2c8; /* hairline borders and dividers */
+  --rule-strong: #b9b4a8; /* hover borders, metadata strip dividers */
+  --sage: #576b5e; /* the single interface accent: links, focus, selected nav */
+  --sage-tint: #e3e7e1; /* sentence selection and highlight background */
+  --clay: #a65f45; /* markers only — used nowhere else */
+
+  /* Type families */
+  --font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --font-story: 'Source Serif 4', Georgia, serif;
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;
+  --font-readable: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  /* Reader preferences — a Settings page overrides these at runtime. */
+  --reading-font-family: var(--font-story);
+  --reading-font-size: 1.25rem; /* 20px at the browser default; scales with zoom */
+  --reading-line-height: 1.75;
+  --reading-measure: 65ch; /* within the 62–68 character range */
+
+  /* Motion */
+  --motion-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0ms;
+  }
+}
