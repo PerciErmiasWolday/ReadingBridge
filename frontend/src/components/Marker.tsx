@@ -1,16 +1,5 @@
-import type { MarkerType } from '../types'
-
-const descriptions: Record<MarkerType, string> = {
-  feeling: 'a feeling',
-  who: 'who someone is',
-  why: 'why something happens',
-  idiom: 'a figure of speech',
-  other: 'something implied',
-}
-
 interface MarkerProps {
-  type: MarkerType
-  onActivate?: () => void
+  onActivate?: (trigger: HTMLElement) => void
   onActiveChange?: (active: boolean) => void
 }
 
@@ -18,12 +7,12 @@ interface MarkerProps {
  * A quiet 6px clay dot placed after a sentence. The visible dot is small but
  * the button's hit area is 24px. Clay is reserved for markers only.
  */
-export function Marker({ type, onActivate, onActiveChange }: MarkerProps) {
+export function Marker({ onActivate, onActiveChange }: MarkerProps) {
   return (
     <button
       type="button"
-      aria-label={`Explain this sentence: it hints at ${descriptions[type]}`}
-      onClick={onActivate}
+      aria-label="Explain this sentence"
+      onClick={(event) => onActivate?.(event.currentTarget)}
       onMouseEnter={() => onActiveChange?.(true)}
       onMouseLeave={() => onActiveChange?.(false)}
       onFocus={() => onActiveChange?.(true)}

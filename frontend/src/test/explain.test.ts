@@ -1,29 +1,26 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { newStudent } from '../data/newStudent'
-import { explain, IS_MOCK } from '../services/explain'
+import { explain } from '../services/explain'
 
-describe('explain (mock)', () => {
-  it('is clearly a mock', () => {
-    expect(IS_MOCK).toBe(true)
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe('explain', () => {
+  it('posts the whole story as one text with the sentence id and level', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', fetchMock)
+    await explain(newStudent, 4, 'simple')
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(init.body as string) as { story: string; sentence_id: number }
+    expect(url).toBe('/api/explain')
+    expect(body).toMatchObject({ sentence_id: 4, level: 'simple' })
+    expect(body.story).toMatch(/^Maya stepped off the bus.* after all\.$/)
   })
 
-  it('returns the Explanation shape for a marked sentence', async () => {
-    const result = await explain(newStudent, 4, 'normal')
-    expect(result).toEqual({
-      type: 'feeling',
-      clue_quote: "Maya's heart beat quickly.",
-      clue: expect.stringContaining('MOCK'),
-      meaning: expect.stringContaining('MOCK'),
-      not_in_text: false,
-      sentence_id: 4,
-      checks: [expect.stringContaining('MOCK')],
-    })
-  })
-
-  it('falls back for an unknown sentence', async () => {
-    const result = await explain(newStudent, 999, 'simple')
-    expect(result.fallback).toBe(true)
-    expect(result.not_in_text).toBe(true)
+  it('throws when the backend fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
+    await expect(explain(newStudent, 4, 'normal')).rejects.toThrow()
   })
 })
 

@@ -209,7 +209,8 @@ function MarkerSection() {
             key={sentence.id}
             sentence={sentence}
             selected={selected === sentence.id}
-            onSelect={(id) => setSelected((current) => (current === id ? null : id))}
+            onSelect={setSelected}
+            onExplain={setSelected}
           />
         ))}
       </p>

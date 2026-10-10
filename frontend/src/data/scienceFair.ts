@@ -35,7 +35,7 @@ export const scienceFair: Story = {
         {
           id: 8,
           text: '"Oh, great," Omar said, frowning at the table.',
-          marker: { type: 'other' },
+          marker: { type: 'feeling' },
         },
       ],
     },

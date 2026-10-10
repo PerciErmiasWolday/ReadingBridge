@@ -65,4 +65,15 @@
     text-transform: uppercase;
     font-weight: 500;
   }
+
+  /* The only animation: a 150ms fade in (0ms under prefers-reduced-motion). */
+  .fade-in {
+    animation: fade-in var(--motion-duration) ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
 }

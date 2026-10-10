@@ -28,6 +28,10 @@ The build has 7 phases. Phase 1 (foundation, design system, shell) is complete.
 - `/backend` — Python FastAPI. **Do not modify it.** Frontend types must match its API
   (`POST /split`, `POST /explain`; see `backend/README.md`). Setup:
   `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`; tests: `.venv/bin/pytest -q`.
+  Run: `.venv/bin/uvicorn main:app --port 8000`, with `OPENAI_API_KEY` set. Without a key, run
+  `FAKE_LLM=1 .venv/bin/uvicorn main:app --port 8000`: canned answers from `fake_llm.py` (mock data;
+  only "Maya's heart beat quickly." gets a real explanation, every other sentence gets not_in_text).
+  The Vite dev server proxies `/api/*` to `localhost:8000`.
 
 Commands (run in `/frontend`): `npm run dev`, `npm run build`, `npm run lint`, `npm test`,
 `npm run format`. All four of build, lint, test and format:check must pass before a phase ends.
@@ -116,6 +120,9 @@ to `#576B5E` (same hue): 5.07:1 on paper, 4.63:1 on surface, 4.57:1 on sage-tint
   Never use `outline-none` or remove outlines (a test enforces this).
 - Marker (`Marker`, via `SentenceText`): 6px clay dot after the sentence in a 24px hit area. On
   hover or focus the marked phrase gets a subtle clay underline, so colour is never the only cue.
+- Explanation panel (`ReaderPage`): inline after the paragraph, never over the text. Hairline border,
+  surface background, square corners. The clue_quote is underlined in sage in the story.
+- Fade: `.fade-in` (150ms opacity) is the only animation.
 - Selected nav item: sage text plus a 1px sage rule on its left edge, never a filled pill.
 - Wordmark: "ReadingBridge" set in Instrument Serif. No logo, no illustration.
 
@@ -178,5 +185,6 @@ Sentence ids are the backend's 0-based indices from `backend/text_utils.split_se
 whole story. Story data must be generated with that function, never split by hand.
 
 `frontend/src/services/explain.ts` exports
-`explain(story, sentenceId, level): Promise<Explanation>`. It is currently a **MOCK**
-(`IS_MOCK = true`); a later phase points it at the backend without changing components.
+`explain(story, sentenceId, level): Promise<Explanation>`. It POSTs to `/api/explain` with the
+whole story as one text (all sentences joined with spaces) so sentence ids match the backend.
+There is no frontend mock. Never show `checks` to students.
