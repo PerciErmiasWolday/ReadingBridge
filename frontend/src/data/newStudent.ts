@@ -5,6 +5,7 @@ import type { Story } from '../types'
 export const newStudent: Story = {
   id: 'new-student',
   title: 'The New Student',
+  description: "Maya's first day at a new school.",
   category: 'School',
   readMinutes: 1,
   sections: [

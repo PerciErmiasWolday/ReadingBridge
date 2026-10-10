@@ -157,7 +157,7 @@ type MarkerType = 'feeling' | 'who' | 'why' | 'idiom' | 'other'
 
 interface Sentence { id: number; text: string; marker?: { type: MarkerType } }
 interface Section  { id: string; sentences: Sentence[] }
-interface Story    { id: string; title: string; category: string; readMinutes: number; sections: Section[] }
+interface Story    { id: string; title: string; description: string; category: string; readMinutes: number; sections: Section[] }
 
 // Must match the backend /explain response exactly
 interface Explanation {

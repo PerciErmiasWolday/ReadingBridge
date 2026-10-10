@@ -14,6 +14,7 @@ export interface Section {
 export interface Story {
   id: string
   title: string
+  description: string
   category: string
   readMinutes: number
   sections: Section[]
