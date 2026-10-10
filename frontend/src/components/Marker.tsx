@@ -1,37 +1,21 @@
-import { useRef } from 'react'
-
 interface MarkerProps {
-  onActivate?: (trigger: HTMLElement, byHover: boolean) => void
+  onActivate?: (trigger: HTMLElement) => void
   onActiveChange?: (active: boolean) => void
 }
 
-/** Resting the pointer this long on a marker opens its explanation; passing over it does not. */
-const HOVER_DELAY_MS = 400
-
 /**
- * A small marker dot after a sentence, in a 24px hit area. Hover (briefly), click, tap or
- * Enter opens the explanation. The marker colour is used nowhere else.
+ * A small marker dot after a sentence, in a 24px hit area. Click, tap, Enter or Space opens
+ * the explanation; hover and focus only underline the sentence. The marker colour is used
+ * nowhere else.
  */
 export function Marker({ onActivate, onActiveChange }: MarkerProps) {
-  const timer = useRef<number | undefined>(undefined)
-
   return (
     <button
       type="button"
       aria-label="Explain this sentence"
-      onClick={(event) => {
-        window.clearTimeout(timer.current)
-        onActivate?.(event.currentTarget, false)
-      }}
-      onMouseEnter={(event) => {
-        const target = event.currentTarget
-        onActiveChange?.(true)
-        timer.current = window.setTimeout(() => onActivate?.(target, true), HOVER_DELAY_MS)
-      }}
-      onMouseLeave={() => {
-        window.clearTimeout(timer.current)
-        onActiveChange?.(false)
-      }}
+      onClick={(event) => onActivate?.(event.currentTarget)}
+      onMouseEnter={() => onActiveChange?.(true)}
+      onMouseLeave={() => onActiveChange?.(false)}
       onFocus={() => onActiveChange?.(true)}
       onBlur={() => onActiveChange?.(false)}
       className="-my-1 ml-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full align-middle"

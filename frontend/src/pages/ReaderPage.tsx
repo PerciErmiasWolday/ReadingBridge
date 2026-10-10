@@ -36,8 +36,6 @@ interface Panel {
   sentenceId: number
   level: ExplainLevel
   trigger: HTMLElement
-  /** Opened by click, tap or keyboard (true) or by resting the pointer on a marker (false). */
-  moveFocus: boolean
   status: 'loading' | 'done' | 'error'
   explanation?: Explanation
 }
@@ -75,16 +73,9 @@ function Reader({ story }: { story: Story }) {
     logSection(story.id, sectionIndex)
   }, [story.id, sectionIndex])
 
-  async function load(
-    sentenceId: number,
-    level: ExplainLevel,
-    trigger: HTMLElement,
-    moveFocus = true,
-  ) {
-    // Hovering a marker whose explanation is already open does nothing.
-    if (!moveFocus && panel?.sentenceId === sentenceId && panel.status !== 'error') return
+  async function load(sentenceId: number, level: ExplainLevel, trigger: HTMLElement) {
     const request = ++latest.current
-    const base = { request, sentenceId, level, trigger, moveFocus }
+    const base = { request, sentenceId, level, trigger }
     setSelectedId(sentenceId)
     setPanel({ ...base, status: 'loading' })
     try {
@@ -98,7 +89,7 @@ function Reader({ story }: { story: Story }) {
 
   function close() {
     latest.current++
-    if (panel?.moveFocus) panel.trigger.focus()
+    panel?.trigger.focus()
     setPanel(null)
   }
 
@@ -179,7 +170,7 @@ function Reader({ story }: { story: Story }) {
                 selected={selectedId === sentence.id}
                 quote={quote}
                 onSelect={setSelectedId}
-                onExplain={(id, trigger, byHover) => load(id, 'normal', trigger, !byHover)}
+                onExplain={(id, trigger) => load(id, 'normal', trigger)}
               />
             ))}
           </p>
@@ -230,9 +221,7 @@ interface ExplanationPanelProps {
 
 function ExplanationPanel({ panel, onSimpler, onRetry, onClose }: ExplanationPanelProps) {
   const heading = useRef<HTMLHeadingElement>(null)
-  useEffect(() => {
-    if (panel.moveFocus) heading.current?.focus()
-  }, [panel.moveFocus])
+  useEffect(() => heading.current?.focus(), [])
 
   const { status, explanation } = panel
   const found = status === 'done' && explanation && !explanation.not_in_text

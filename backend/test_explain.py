@@ -1,4 +1,6 @@
 """Tests for /explain with the AI replaced by scripted answers. Run: pytest -q"""
+import openai
+import pytest
 from fastapi.testclient import TestClient
 
 import main
@@ -16,6 +18,11 @@ GOOD = {"type": "feeling", "clue_quote": "Then she looked down at her shoes.",
         "clue": "She looked at her shoes instead of the class.",
         "meaning": "Maya probably feels nervous.", "not_in_text": False}
 INVENTED = {**GOOD, "clue_quote": "Maya started to cry."}  # plausible, but not in the story
+
+
+@pytest.fixture(autouse=True)
+def log_to_tmp(monkeypatch, tmp_path):
+    monkeypatch.setattr(main, "LOG_PATH", tmp_path / "explain.jsonl")
 
 
 def script(monkeypatch, answers):
@@ -69,3 +76,13 @@ def test_empty_story_is_invalid():
 def test_sentence_out_of_range():
     r = client.post("/explain", json={"story": STORY, "sentence_id": 40})
     assert r.status_code == 400
+
+
+def test_openai_error_returns_503(monkeypatch):
+    def failing_client():
+        raise openai.OpenAIError("You have no credits remaining.")
+    monkeypatch.delenv("FAKE_LLM", raising=False)
+    monkeypatch.setattr(openai, "OpenAI", failing_client)
+    r = client.post("/explain", json={"story": STORY, "sentence_id": 3})
+    assert r.status_code == 503
+    assert r.json() == {"detail": "The explanation service is unavailable."}

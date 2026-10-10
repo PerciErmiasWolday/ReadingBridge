@@ -19,14 +19,26 @@ refers to, cause and effect). It must also work for any student who finds those 
 Students read a story, tap a quiet marker or select any sentence for a short explanation grounded in
 the text, and can optionally quiz themselves. Nothing interrupts reading unless the student asks.
 
-The build has 7 phases. Phases 1–3 (foundation, Library, reading screen) are complete, followed by a
-full visual redesign (the design system below). Phase 4 is the optional quiz.
+The build has 7 phases:
+
+1. Foundation, design system, shell — done
+2. Library — done
+3. Reading screen — done (followed by the full redesign described below)
+4. Optional quiz — never forced, never automatic
+5. AI markers for pasted text, and TXT upload
+6. Testing and evaluation (uses `backend/logs/explain.jsonl`)
+7. Case study deliverables: README, notes, video
 
 ## Repository
 
 - `/frontend` — React 19 + TypeScript (strict) + Vite, Tailwind CSS v3, React Router, Lucide,
   Vitest + React Testing Library, ESLint 9 + Prettier, fonts self-hosted via @fontsource.
-- `/backend` — Python FastAPI. **Do not modify it.** Frontend types must match its API
+- `/backend` — Python FastAPI. **Do not modify it** unless a request explicitly allows it. The only
+  approved changes so far are in `main.py`: OpenAI errors return HTTP 503
+  `{"detail": "The explanation service is unavailable."}`, and every `/explain` response is
+  appended as one JSON line (`sentence_id`, `level`, full `response` with `checks`) to
+  `backend/logs/explain.jsonl` (git-ignored). Never change the prompt or grounding logic without
+  approval. Frontend types must match its API
   (`POST /split`, `POST /explain`; see `backend/README.md`). Setup:
   `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`; tests: `.venv/bin/pytest -q`.
   Run: `.venv/bin/uvicorn main:app --port 8000`, with `OPENAI_API_KEY` set. Without a key, run
@@ -122,7 +134,7 @@ spacing, theme, motion (`off` default | `on`), and whether markers show.
   follows the reading theme. Put `<Arrow />` inside for the forward nudge.
 - Focus ring: 2px accent outline, 2px offset, global `:focus-visible` rule. Never remove outlines.
 - `Marker` (via `SentenceText`): 8px marker dot in a 24px hit area, one colour for every type.
-  Click, tap, Enter, or resting the pointer 400ms opens help (hover does not move focus).
+  Only click, tap, Enter or Space opens help. Hover and focus only show the clay underline.
 - Any sentence can be selected (`r-select` background) and then offers "Help me with this".
 - Help card (`ReaderPage`): inline below the paragraph, never over text. "What's the clue?" (the
   quote, also underlined in the story), "What does it mean?", "Say it more simply →".

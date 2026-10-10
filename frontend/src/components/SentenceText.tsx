@@ -9,7 +9,7 @@ interface SentenceTextProps {
   /** Evidence from an open explanation, underlined in the accent colour where it appears. */
   quote?: string
   onSelect?: (id: number) => void
-  onExplain?: (id: number, trigger: HTMLElement, byHover?: boolean) => void
+  onExplain?: (id: number, trigger: HTMLElement) => void
 }
 
 /**
@@ -63,7 +63,7 @@ export function SentenceText({
       {sentence.marker && (
         <Marker
           onActiveChange={setMarkerActive}
-          onActivate={(trigger, byHover) => onExplain?.(sentence.id, trigger, byHover)}
+          onActivate={(trigger) => onExplain?.(sentence.id, trigger)}
         />
       )}{' '}
     </span>

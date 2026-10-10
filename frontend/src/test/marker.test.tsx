@@ -29,7 +29,7 @@ describe('marker', () => {
     render(<SentenceText sentence={sentence} onExplain={onExplain} />)
     const marker = screen.getByRole('button', { name: 'Explain this sentence' })
     await userEvent.click(marker)
-    expect(onExplain).toHaveBeenCalledWith(4, marker, false)
+    expect(onExplain).toHaveBeenCalledWith(4, marker)
   })
 
   it('renders no marker for an unmarked sentence', () => {

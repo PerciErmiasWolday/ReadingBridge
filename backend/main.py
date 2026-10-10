@@ -4,7 +4,9 @@ Run:  uvicorn main:app --reload --port 8000
 Env:  OPENAI_API_KEY=...   (or FAKE_LLM=1 to run without a key, using canned answers)
 """
 import json
+import logging
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +17,7 @@ from prompts import EXPLAIN_SYSTEM, RETRY_NOTE, SIMPLE_ADDENDUM, build_user_mess
 from text_utils import number_sentences, split_sentences
 
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+LOG_PATH = Path(__file__).parent / "logs" / "explain.jsonl"
 NOT_IN_TEXT = {
     "type": "other", "clue_quote": "", "clue": "",
     "meaning": "The story doesn't tell us this.", "not_in_text": True,
@@ -54,6 +57,15 @@ def call_llm(system: str, user: str) -> dict:
         return {}
 
 
+def log_explain(response: dict, level: str) -> dict:
+    """Append one /explain response as a JSON line, for later evaluation."""
+    LOG_PATH.parent.mkdir(exist_ok=True)
+    with LOG_PATH.open("a") as f:
+        f.write(json.dumps({"sentence_id": response["sentence_id"], "level": level,
+                            "response": response}) + "\n")
+    return response
+
+
 @app.post("/split")
 def split(req: SplitRequest):
     sentences = split_sentences(req.story)
@@ -77,12 +89,17 @@ def explain(req: ExplainRequest):
 
     checks = []
     for attempt in range(2):  # first try + one retry with the failure reason
-        result = call_llm(system, user)
+        try:
+            result = call_llm(system, user)
+        except Exception:
+            logging.getLogger("uvicorn.error").exception("OpenAI call failed")
+            raise HTTPException(503, "The explanation service is unavailable.")
         reason = grounding.check(result, req.story, simple)
         checks.append(reason or "passed")
         if reason is None:
-            return {**result, "sentence_id": req.sentence_id, "checks": checks}
+            return log_explain({**result, "sentence_id": req.sentence_id, "checks": checks}, req.level)
         user += RETRY_NOTE.format(reason=reason)
 
     # Both attempts failed the checks: say so honestly instead of showing a guess.
-    return {**NOT_IN_TEXT, "sentence_id": req.sentence_id, "checks": checks, "fallback": True}
+    return log_explain({**NOT_IN_TEXT, "sentence_id": req.sentence_id, "checks": checks,
+                        "fallback": True}, req.level)

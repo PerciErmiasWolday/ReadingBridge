@@ -94,14 +94,20 @@ describe('reader', () => {
     expect(marker).toHaveFocus()
   })
 
-  it('opens the explanation when the pointer rests on a marker, without moving focus', async () => {
+  it('opens help on click or Space only: hovering a marker just underlines its sentence', async () => {
     const user = userEvent.setup()
     renderAt('/read/new-student')
     await user.click(screen.getByRole('button', { name: 'Continue' }))
-    const continueButton = screen.getByRole('button', { name: 'Continue' })
-    await user.hover(screen.getAllByRole('button', { name: 'Explain this sentence' })[0])
+    const marker = screen.getAllByRole('button', { name: 'Explain this sentence' })[0]
+
+    await user.hover(marker)
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(screen.getByRole('button', { name: 'Select sentence 5' })).toHaveClass('underline')
+    expect(screen.queryByRole('complementary', { name: 'Explanation' })).not.toBeInTheDocument()
+    expect(explain).not.toHaveBeenCalled()
+
+    marker.focus()
+    await user.keyboard(' ')
     expect(await screen.findByText(answer.meaning)).toBeInTheDocument()
-    expect(explain).toHaveBeenCalledWith(newStudent, 4, 'normal')
-    expect(continueButton).toHaveFocus()
   })
 })
