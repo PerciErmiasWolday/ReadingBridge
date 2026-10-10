@@ -48,3 +48,18 @@ def build_user_message(numbered_story: str, sentence_id: int, sentence: str,
     if selected_text and selected_text.strip() != sentence.strip():
         msg += f"\nThey highlighted these words: \"{selected_text.strip()}\""
     return msg
+
+
+MARKERS_SYSTEM = """You help an autistic student read a story they brought themselves.
+You get the story as numbered sentences. Find the sentences where a reader has to work out
+something the story does not say directly:
+- "feeling": how a character feels is shown, not said
+- "who": a word like "he", "she", "it" or "they" could point to more than one person or thing
+- "why": the reason something happened is left out
+- "idiom": a phrase does not mean what its words say
+
+Choose only the clearest cases. Mark each sentence at most once. Never mark more sentences than
+the limit you are given. If no sentence needs a marker, return an empty list.
+
+Return only JSON in this shape:
+{"markers": [{"sentence_id": number, "type": "feeling" | "who" | "why" | "idiom"}]}"""

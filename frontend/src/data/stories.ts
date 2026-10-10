@@ -48,15 +48,7 @@ export function getStory(id: string | undefined): Story | undefined {
   return stories.find((story) => story.id === id)
 }
 
-export function savePastedStory(sentences: string[]): void {
-  const story: Story = {
-    id: 'pasted',
-    title: 'Your reading',
-    description: '',
-    category: 'Own reading',
-    readMinutes: Math.max(1, Math.round(sentences.join(' ').split(/\s+/).length / 200)),
-    sections: [{ id: 's1', sentences: sentences.map((text, id) => ({ id, text })) }],
-  }
+export function savePastedStory(story: Story): void {
   try {
     sessionStorage.setItem(PASTED_KEY, JSON.stringify(story))
   } catch {

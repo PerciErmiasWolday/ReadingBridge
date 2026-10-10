@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import main
+from text_utils import split_sentences
 
 STORY = (
     "Maya stepped off the bus and held the strap of her backpack a little tighter. "
@@ -31,9 +32,9 @@ def script(monkeypatch, answers):
 
 
 def test_split_sentences():
-    r = client.post("/split", json={"story": STORY}).json()
-    assert r["sentences"][3] == "Maya's heart beat quickly."
-    assert len(r["sentences"]) == 6
+    sentences = split_sentences(STORY)
+    assert sentences[3] == "Maya's heart beat quickly."
+    assert len(sentences) == 6
 
 
 def test_normal_case_passes(monkeypatch):

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Arrow } from '../components/Arrow'
 import { BookmarkButton } from '../components/BookmarkButton'
 import { Button } from '../components/Button'
+import { buttonClass } from '../components/buttonClass'
 import { Cover } from '../components/Cover'
 import { HeroArt } from '../components/HeroArt'
 import { ProgressBar } from '../components/ProgressBar'
@@ -16,10 +17,8 @@ import {
   stories,
   storySkills,
 } from '../data/stories'
-import { split } from '../services/split'
+import { prepare, uploadFile } from '../services/reading'
 import type { Story } from '../types'
-
-const MAX_LENGTH = 3000
 
 export function LibraryPage() {
   const lastRead = getLastRead()
@@ -245,23 +244,24 @@ function OwnReading() {
   const navigate = useNavigate()
   const [text, setText] = useState('')
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState('')
 
-  async function start() {
-    const story = text.trim()
-    if (!story) return setError('Paste a story first.')
-    if (story.length > MAX_LENGTH) {
-      return setError(
-        'This is longer than ReadingBridge can handle right now. Try a shorter passage.',
-      )
-    }
-    setBusy(true)
+  // Paste and upload share one pipeline: (upload →) prepare → open in the reader.
+  async function start(file?: File) {
+    if (!file && !text.trim()) return setError('Paste a story first.')
+    setError('')
     try {
-      savePastedStory(await split(story))
+      let source = { title: 'Your reading', text }
+      if (file) {
+        setStatus('Reading your file…')
+        source = await uploadFile(file)
+      }
+      setStatus('Finding the tricky parts…')
+      savePastedStory(await prepare(source.title, source.text))
       navigate('/read/pasted')
-    } catch {
-      setError("The reading service isn't running.")
-      setBusy(false)
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : String(problem))
+      setStatus('')
     }
   }
 
@@ -279,8 +279,9 @@ function OwnReading() {
           Bring your own <span className="italic">reading</span>.
         </h2>
         <p className="mt-5 max-w-md text-[1.0625rem] leading-relaxed text-ivory">
-          Paste a passage from class, a worksheet or a short story. It is split into sentences so
-          you can ask about any of them, and it is forgotten when you close this tab.
+          Paste a passage, or upload a .txt or text-based .pdf file of up to 2 MB. ReadingBridge
+          splits it into sections, marks the parts where meaning is unsaid, and forgets it when you
+          close this tab.
         </p>
       </Reveal>
       <Reveal delay={1} className="md:col-span-7">
@@ -290,7 +291,7 @@ function OwnReading() {
               Your text
             </label>
             <span className="text-[0.8125rem] text-ink-soft">
-              {text.length.toLocaleString('en')} / 3,000
+              {text.length.toLocaleString('en')} / 5,000
             </span>
           </div>
           <textarea
@@ -303,6 +304,11 @@ function OwnReading() {
             onChange={(event) => setText(event.target.value)}
             className="ruled mt-3 block w-full resize-y border-0 bg-transparent p-0 font-reading text-reading text-ink placeholder:text-ink-soft"
           />
+          {status && (
+            <p role="status" className="mb-0 mt-3 text-[0.9375rem] text-ink-soft">
+              {status}
+            </p>
+          )}
           {error && (
             <p
               id="paste-error"
@@ -314,17 +320,31 @@ function OwnReading() {
             </p>
           )}
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-5">
-            <Button onClick={start} disabled={busy}>
+            <Button onClick={() => start()} disabled={Boolean(status)}>
               Start reading
               <Arrow />
             </Button>
-            <Button variant="secondary" disabled aria-describedby="upload-note">
-              <Upload size={17} strokeWidth={1.6} aria-hidden="true" />
-              Upload file
-            </Button>
-            <span id="upload-note" className="text-[0.875rem] text-ink-soft">
-              File upload is not available yet.
-            </span>
+            {/* The file input is the real control; its label looks like a button. */}
+            <label className="relative">
+              <input
+                type="file"
+                accept=".txt,.pdf"
+                disabled={Boolean(status)}
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  event.target.value = ''
+                  if (file) start(file)
+                }}
+                className="peer sr-only"
+              />
+              <span
+                className={`${buttonClass('secondary')} cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent`}
+              >
+                <Upload size={17} strokeWidth={1.6} aria-hidden="true" />
+                Upload file
+              </span>
+            </label>
+            <span className="text-[0.875rem] text-ink-soft">.txt or .pdf, up to 2 MB</span>
           </div>
         </div>
       </Reveal>

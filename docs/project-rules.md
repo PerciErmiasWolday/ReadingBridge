@@ -25,7 +25,7 @@ The build has 7 phases:
 2. Library — done
 3. Reading screen — done (followed by the full redesign described below)
 4. Optional quiz — never forced, never automatic
-5. AI markers for pasted text, and TXT upload
+5. Bring your own reading: paste or upload (.txt, text-based .pdf), sections and AI markers — done
 6. Testing and evaluation (uses `backend/logs/explain.jsonl`)
 7. Case study deliverables: README, notes, video
 
@@ -33,13 +33,13 @@ The build has 7 phases:
 
 - `/frontend` — React 19 + TypeScript (strict) + Vite, Tailwind CSS v3, React Router, Lucide,
   Vitest + React Testing Library, ESLint 9 + Prettier, fonts self-hosted via @fontsource.
-- `/backend` — Python FastAPI. **Do not modify it** unless a request explicitly allows it. The only
-  approved changes so far are in `main.py`: OpenAI errors return HTTP 503
+- `/backend` — Python FastAPI. **Do not modify it** unless a request explicitly allows it. Never
+  change the `/explain` prompt or `grounding.py` without approval. Approved changes so far:
+  `/upload` and `/prepare` (Phase 5, below), and in `/explain`: OpenAI errors return HTTP 503
   `{"detail": "The explanation service is unavailable."}`, and every `/explain` response is
   appended as one JSON line (`sentence_id`, `level`, full `response` with `checks`) to
-  `backend/logs/explain.jsonl` (git-ignored). Never change the prompt or grounding logic without
-  approval. Frontend types must match its API
-  (`POST /split`, `POST /explain`; see `backend/README.md`). Setup:
+  `backend/logs/explain.jsonl` (git-ignored). Frontend types must match its API
+  (`POST /upload`, `POST /prepare`, `POST /explain`; see `backend/README.md`). Setup:
   `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`; tests: `.venv/bin/pytest -q`.
   Run: `.venv/bin/uvicorn main:app --port 8000`, with `OPENAI_API_KEY` set. Without a key, run
   `FAKE_LLM=1 .venv/bin/uvicorn main:app --port 8000`: canned answers from `fake_llm.py` (mock data;
@@ -196,3 +196,17 @@ whole story. Story data must be generated with that function, never split by han
 `explain(story, sentenceId, level): Promise<Explanation>`. It POSTs to `/api/explain` with the
 whole story as one text (all sentences joined with spaces) so sentence ids match the backend.
 There is no frontend mock. Never show `checks` to students.
+## Bring your own reading (Phase 5)
+
+Paste and upload share one pipeline (`LibraryPage` → `services/reading.ts`):
+(`POST /upload` →) `POST /prepare` → `savePastedStory` (sessionStorage) → `/read/pasted`, which is
+the normal reading screen. While working, show only plain status text ("Reading your file…",
+"Finding the tricky parts…"); show backend error messages as they are.
+
+- `/upload`: `.txt` or text-based `.pdf` (pypdf), max 2 MB; scanned PDFs get 422; no OCR.
+- `/prepare`: max 5,000 characters. Paragraphs (blank lines) become sections; sentence ids come
+  from `split_sentences` over the whole text, so they match `/explain`. Markers come from
+  `MARKERS_SYSTEM` and are checked in code: real ids, known types, one per sentence, at most
+  `max(1, sentences // 3)`. If the model fails, the story comes back without markers.
+- PDF extraction loses blank lines, so a PDF usually becomes one section.
+- Pasted or uploaded text is never added to the library or the reading log.
