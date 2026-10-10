@@ -101,7 +101,7 @@ function ShelfRow({
   return (
     <Reveal className="mb-14">
       <section>
-        <h2 className="m-0 mb-6 border-t-2 border-midnight pt-4 font-display text-[2rem] font-normal text-midnight">
+        <h2 className="m-0 mb-6 border-t-[2px] border-midnight pt-4 font-display text-[2rem] font-normal text-midnight">
           {title} <span className="text-[1.5rem] text-ink-soft">({children.length})</span>
         </h2>
         {children.length ? (

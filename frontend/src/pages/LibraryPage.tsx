@@ -1,5 +1,5 @@
-import { Info, Upload } from 'lucide-react'
-import { useState } from 'react'
+import { Info, Plus, Upload } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Arrow } from '../components/Arrow'
 import { BookmarkButton } from '../components/BookmarkButton'
@@ -11,8 +11,10 @@ import { ProgressBar } from '../components/ProgressBar'
 import { Reveal } from '../components/Reveal'
 import {
   getLastRead,
+  getOwnReadings,
   getStory,
-  savePastedStory,
+  removeOwnReading,
+  saveOwnReading,
   skills,
   stories,
   storySkills,
@@ -33,7 +35,6 @@ export function LibraryPage() {
       )}
       <Shelf />
       <Themes />
-      <OwnReading />
     </>
   )
 }
@@ -89,7 +90,7 @@ function ContinueReading({ story, sectionIndex }: { story: Story; sectionIndex: 
           <h2 className="m-0 font-display text-[1.75rem] font-normal leading-tight text-midnight md:text-[2rem]">
             Continue reading <span className="italic">{story.title}</span>
           </h2>
-          <blockquote className="m-0 mt-1 max-w-2xl border-l-2 border-accent pl-4 font-story text-[1.0625rem] italic text-ink">
+          <blockquote className="m-0 mt-1 max-w-2xl border-l-[2px] border-accent pl-4 font-story text-[1.0625rem] italic text-ink">
             {story.sections[index].sentences[0]?.text}
           </blockquote>
         </div>
@@ -113,7 +114,24 @@ function ContinueReading({ story, sectionIndex }: { story: Story; sectionIndex: 
 // Staggered heights make the shelf feel arranged by hand rather than gridded.
 const shelfOffsets = ['md:mt-0', 'md:mt-16', 'md:mt-6']
 
+const textButton =
+  'rounded-sm text-[0.9375rem] font-medium text-accent underline-offset-4 hover:underline'
+
 function Shelf() {
+  const [own, setOwn] = useState(getOwnReadings)
+  const [adding, setAdding] = useState(false)
+  const [confirming, setConfirming] = useState<string | null>(null)
+  const addButton = useRef<HTMLButtonElement>(null)
+  // The add item comes first, then the reader's own readings (newest first), then the library.
+  const offset = (index: number) => shelfOffsets[index % shelfOffsets.length]
+
+  function remove(id: string) {
+    removeOwnReading(id)
+    setOwn(getOwnReadings())
+    setConfirming(null)
+    addButton.current?.focus()
+  }
+
   return (
     <section id="shelf" className="scroll-mt-8 pb-24">
       <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-6">
@@ -128,8 +146,62 @@ function Shelf() {
         </p>
       </Reveal>
       <ul className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 md:grid-cols-3 md:gap-x-10">
+        <li className={offset(0)}>
+          <button
+            ref={addButton}
+            type="button"
+            aria-expanded={adding}
+            aria-controls="add-reading"
+            onClick={() => setAdding(!adding)}
+            className="flex aspect-[2/3] w-full flex-col items-center justify-center gap-3 border border-line-strong px-4 text-center text-midnight transition hover:border-midnight"
+          >
+            <Plus size={24} strokeWidth={1.5} aria-hidden="true" />
+            <span className="font-display text-[1.5rem] leading-tight">Add your own reading</span>
+          </button>
+          <p className="m-0 mt-5 text-ink-soft">Paste text, or upload a .txt or .pdf file.</p>
+        </li>
+        {own.map((story, index) => (
+          <li key={story.id} className={offset(index + 1)}>
+            <Link
+              to={`/read/${story.id}`}
+              aria-labelledby={`${story.id}-title`}
+              className="group block rounded"
+            >
+              <div className="shadow-book transition duration-500 group-hover:-translate-y-2 group-hover:-rotate-1">
+                <Cover story={story} />
+              </div>
+            </Link>
+            <h3
+              id={`${story.id}-title`}
+              className="m-0 mt-5 font-display text-[1.75rem] font-normal leading-tight text-midnight"
+            >
+              {story.title}
+            </h3>
+            <p className="label-caps m-0 mt-2 text-ink-soft">Your reading</p>
+            {confirming === story.id ? (
+              <p className="m-0 mt-3 flex flex-wrap items-center gap-x-3 text-[0.9375rem] text-ink">
+                Remove this reading?
+                <button type="button" onClick={() => remove(story.id)} className={textButton}>
+                  Yes
+                </button>
+                <button type="button" onClick={() => setConfirming(null)} className={textButton}>
+                  Cancel
+                </button>
+              </p>
+            ) : (
+              <button
+                type="button"
+                aria-label={`Remove ${story.title}`}
+                onClick={() => setConfirming(story.id)}
+                className={`${textButton} mt-3`}
+              >
+                Remove
+              </button>
+            )}
+          </li>
+        ))}
         {stories.map((story, index) => (
-          <li key={story.id} className={shelfOffsets[index % shelfOffsets.length]}>
+          <li key={story.id} className={offset(own.length + index + 1)}>
             <Reveal delay={index}>
               <Link
                 to={`/read/${story.id}`}
@@ -164,6 +236,7 @@ function Shelf() {
           </li>
         ))}
       </ul>
+      {adding && <AddReading />}
     </section>
   )
 }
@@ -240,13 +313,15 @@ function Themes() {
   )
 }
 
-function OwnReading() {
+function AddReading() {
   const navigate = useNavigate()
   const [text, setText] = useState('')
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
+  const box = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => box.current?.focus(), [])
 
-  // Paste and upload share one pipeline: (upload →) prepare → open in the reader.
+  // Paste and upload share one pipeline: (upload →) prepare → save on the shelf → open.
   async function start(file?: File) {
     if (!file && !text.trim()) return setError('Paste a story first.')
     setError('')
@@ -257,8 +332,8 @@ function OwnReading() {
         source = await uploadFile(file)
       }
       setStatus('Finding the tricky parts…')
-      savePastedStory(await prepare(source.title, source.text))
-      navigate('/read/pasted')
+      const saved = saveOwnReading(await prepare(source.title, source.text))
+      navigate(`/read/${saved.id}`)
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : String(problem))
       setStatus('')
@@ -266,88 +341,71 @@ function OwnReading() {
   }
 
   return (
-    <section
-      id="own"
-      className="grid gap-10 bg-midnight px-6 py-14 text-ivory md:grid-cols-12 md:px-12 md:py-16"
+    <div
+      id="add-reading"
+      className="fade-in mt-12 max-w-3xl rounded bg-paper p-5 shadow-panel md:p-6"
     >
-      <Reveal className="md:col-span-5">
-        <p className="label-caps m-0 mb-4 flex items-center gap-3 text-ivory">
-          <span aria-hidden="true" className="h-px w-8 bg-ivory" />
-          Your own reading
+      <div className="flex items-baseline justify-between gap-4">
+        <label htmlFor="own-text" className="label-caps text-ink-soft">
+          Your text
+        </label>
+        <span className="text-[0.8125rem] text-ink-soft">
+          {text.length.toLocaleString('en')} / 5,000
+        </span>
+      </div>
+      <textarea
+        ref={box}
+        id="own-text"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? 'paste-error' : undefined}
+        rows={7}
+        value={text}
+        placeholder="Paste a passage here…"
+        onChange={(event) => setText(event.target.value)}
+        className="ruled mt-3 block w-full resize-y border-0 bg-transparent p-0 font-reading text-reading text-ink placeholder:text-ink-soft"
+      />
+      {status && (
+        <p role="status" className="mb-0 mt-3 text-[0.9375rem] text-ink-soft">
+          {status}
         </p>
-        <h2 className="m-0 font-display text-[2.75rem] font-normal leading-none md:text-[3.5rem]">
-          Bring your own <span className="italic">reading</span>.
-        </h2>
-        <p className="mt-5 max-w-md text-[1.0625rem] leading-relaxed text-ivory">
-          Paste a passage, or upload a .txt or text-based .pdf file of up to 2 MB. ReadingBridge
-          splits it into sections, marks the parts where meaning is unsaid, and forgets it when you
-          close this tab.
+      )}
+      {error && (
+        <p
+          id="paste-error"
+          role="alert"
+          className="mb-0 mt-3 flex items-center gap-2 text-[0.9375rem] text-ink-soft"
+        >
+          <Info size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+          {error}
         </p>
-      </Reveal>
-      <Reveal delay={1} className="md:col-span-7">
-        <div className="rounded bg-paper p-5 text-ink shadow-panel md:p-6">
-          <div className="flex items-baseline justify-between gap-4">
-            <label htmlFor="own-text" className="label-caps text-ink-soft">
-              Your text
-            </label>
-            <span className="text-[0.8125rem] text-ink-soft">
-              {text.length.toLocaleString('en')} / 5,000
-            </span>
-          </div>
-          <textarea
-            id="own-text"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'paste-error' : undefined}
-            rows={7}
-            value={text}
-            placeholder="Paste a passage here…"
-            onChange={(event) => setText(event.target.value)}
-            className="ruled mt-3 block w-full resize-y border-0 bg-transparent p-0 font-reading text-reading text-ink placeholder:text-ink-soft"
+      )}
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-5">
+        <Button onClick={() => start()} disabled={Boolean(status)}>
+          Start reading
+          <Arrow />
+        </Button>
+        {/* The file input is the real control; its label looks like a button. */}
+        <label className="relative">
+          <input
+            type="file"
+            accept=".txt,.pdf"
+            disabled={Boolean(status)}
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              if (file) start(file)
+            }}
+            className="peer sr-only"
           />
-          {status && (
-            <p role="status" className="mb-0 mt-3 text-[0.9375rem] text-ink-soft">
-              {status}
-            </p>
-          )}
-          {error && (
-            <p
-              id="paste-error"
-              role="alert"
-              className="mb-0 mt-3 flex items-center gap-2 text-[0.9375rem] text-ink-soft"
-            >
-              <Info size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
-              {error}
-            </p>
-          )}
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-5">
-            <Button onClick={() => start()} disabled={Boolean(status)}>
-              Start reading
-              <Arrow />
-            </Button>
-            {/* The file input is the real control; its label looks like a button. */}
-            <label className="relative">
-              <input
-                type="file"
-                accept=".txt,.pdf"
-                disabled={Boolean(status)}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  event.target.value = ''
-                  if (file) start(file)
-                }}
-                className="peer sr-only"
-              />
-              <span
-                className={`${buttonClass('secondary')} cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent`}
-              >
-                <Upload size={17} strokeWidth={1.6} aria-hidden="true" />
-                Upload file
-              </span>
-            </label>
-            <span className="text-[0.875rem] text-ink-soft">.txt or .pdf, up to 2 MB</span>
-          </div>
-        </div>
-      </Reveal>
-    </section>
+          <span
+            className={`${buttonClass('secondary')} cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent`}
+          >
+            <Upload size={17} strokeWidth={1.6} aria-hidden="true" />
+            Upload file
+          </span>
+        </label>
+        <span className="text-[0.875rem] text-ink-soft">.txt or .pdf, up to 2 MB</span>
+      </div>
+    </div>
   )
 }

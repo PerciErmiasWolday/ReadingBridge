@@ -6,6 +6,8 @@ import { Marker } from './Marker'
 interface SentenceTextProps {
   sentence: Sentence
   selected?: boolean
+  /** Its help card is open, so the "Help me with this" offer is not needed. */
+  open?: boolean
   /** Evidence from an open explanation, underlined in the accent colour where it appears. */
   quote?: string
   onSelect?: (id: number) => void
@@ -20,6 +22,7 @@ interface SentenceTextProps {
 export function SentenceText({
   sentence,
   selected = false,
+  open = false,
   quote,
   onSelect,
   onExplain,
@@ -50,7 +53,7 @@ export function SentenceText({
       >
         {underlineQuote(sentence.text, quote)}
       </span>
-      {selected && onExplain && (
+      {selected && onExplain && !open && (
         <button
           type="button"
           onClick={() => ref.current && onExplain?.(sentence.id, ref.current)}

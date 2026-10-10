@@ -20,6 +20,7 @@ describe('design tokens', () => {
       if (
         file.includes('/test/') ||
         file.endsWith('/Marker.tsx') ||
+        file.endsWith('/HelpCard.tsx') ||
         file.endsWith('/SentenceText.tsx')
       ) {
         continue

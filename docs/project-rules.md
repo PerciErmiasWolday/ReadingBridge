@@ -101,7 +101,7 @@ them in sync). Tailwind maps to these variables, and the default palette, radii 
 | `--accent`      | `#2E5B47` | Forest: links, focus ring, progress, active nav, numerals |
 | `--accent-tint` | `#DDE8DF` | Selected options, the example badge                       |
 | `--mustard-tint`| `#F3E3B8` | Sentence selection. The **only** mustard in the app       |
-| `--marker`      | `#B9502F` | Marker dots. The **only** clay/coral anywhere (test-checked) |
+| `--marker`      | `#B9502F` | Marker dots and the help card's left rule. The **only** clay/coral anywhere (test-checked: `Marker`, `SentenceText`, `HelpCard`) |
 
 Reading themes (`.reader[data-theme=ivory|white|sepia|night]` in `index.css`) set `--r-bg`,
 `--r-raised`, `--r-ink`, `--r-soft`, `--r-line`, `--r-select`; night also lightens `--accent` and
@@ -136,8 +136,13 @@ spacing, theme, motion (`off` default | `on`), and whether markers show.
 - `Marker` (via `SentenceText`): 8px marker dot in a 24px hit area, one colour for every type.
   Only click, tap, Enter or Space opens help. Hover and focus only show the clay underline.
 - Any sentence can be selected (`r-select` background) and then offers "Help me with this".
-- Help card (`ReaderPage`): inline below the paragraph, never over text. "What's the clue?" (the
-  quote, also underlined in the story), "What does it mean?", "Say it more simply →".
+- Help card (`HelpCard`): opens directly under the sentence asked about. The paragraph breaks at
+  that sentence, the card sits under it (never over text), and the paragraph continues below.
+  Compact: text-column width, 2px left rule in the marker colour, interface font ~15px, ~12px
+  padding, no headings. Order: the meaning; "Clue:" + the quote in italics (also underlined in the
+  story); then "Say it more simply" and "Close" as small links. not_in_text shows only "The story
+  doesn't tell us this." and Close. The sentence keeps its highlight; focus moves into the card and
+  back to the trigger; Escape closes; one card at a time.
 - `BookmarkButton`, `ProgressBar`, `Reveal`, `ExampleToggle`, `Cover`, `HeroArt`.
 
 ### Do not
@@ -198,9 +203,14 @@ whole story as one text (all sentences joined with spaces) so sentence ids match
 There is no frontend mock. Never show `checks` to students.
 ## Bring your own reading (Phase 5)
 
+Own readings live on the shelf. Its first item is a plain "Add your own reading" cover (hairline
+border, plus icon, no art) that opens the paste box and Upload file directly under the shelf.
 Paste and upload share one pipeline (`LibraryPage` → `services/reading.ts`):
-(`POST /upload` →) `POST /prepare` → `savePastedStory` (sessionStorage) → `/read/pasted`, which is
-the normal reading screen. While working, show only plain status text ("Reading your file…",
+(`POST /upload` →) `POST /prepare` → `saveOwnReading` → `/read/:id`, the normal reading screen.
+Saved readings are kept in localStorage (`readingbridge.own`, newest first, at most 10) with
+unique `own-…` ids and a typographic cover (title, "Your reading", ruled strip). Each has a
+"Remove" link with a "Remove this reading? Yes / Cancel" step; library stories cannot be removed.
+They work with Continue reading, bookmarks, My Reading and the reading log. While working, show only plain status text ("Reading your file…",
 "Finding the tricky parts…"); show backend error messages as they are.
 
 - `/upload`: `.txt` or text-based `.pdf` (pypdf), max 2 MB; scanned PDFs get 422; no OCR.
@@ -209,4 +219,4 @@ the normal reading screen. While working, show only plain status text ("Reading 
   `MARKERS_SYSTEM` and are checked in code: real ids, known types, one per sentence, at most
   `max(1, sentences // 3)`. If the model fails, the story comes back without markers.
 - PDF extraction loses blank lines, so a PDF usually becomes one section.
-- Pasted or uploaded text is never added to the library or the reading log.
+- Own readings are never added to the built-in library or to the Progress page.

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { prepare, uploadFile } from '../services/reading'
@@ -32,9 +32,15 @@ beforeEach(() => {
   vi.mocked(uploadFile).mockReset()
 })
 
-async function paste(text: string) {
+async function openAdd() {
   const user = userEvent.setup()
   renderAt('/library')
+  await user.click(screen.getByRole('button', { name: 'Add your own reading' }))
+  return user
+}
+
+async function paste(text: string) {
+  const user = await openAdd()
   if (text) await user.type(screen.getByRole('textbox', { name: 'Your text' }), text)
   await user.click(screen.getByRole('button', { name: 'Start reading' }))
 }
@@ -102,12 +108,11 @@ describe('bring your own reading', () => {
   })
 
   it('uploads a .txt file, shows each step, then opens the reader', async () => {
-    const user = userEvent.setup()
     const upload = deferred<{ title: string; text: string }>()
     const ready = deferred<Story>()
     vi.mocked(uploadFile).mockReturnValue(upload.promise)
     vi.mocked(prepare).mockReturnValue(ready.promise)
-    renderAt('/library')
+    const user = await openAdd()
 
     const file = new File(['She said hello.'], 'notes.txt', { type: 'text/plain' })
     await user.upload(screen.getByLabelText('Upload file'), file)
@@ -124,13 +129,12 @@ describe('bring your own reading', () => {
   })
 
   it('shows an upload error and stays on the Library', async () => {
-    const user = userEvent.setup()
     vi.mocked(uploadFile).mockRejectedValue(
       new Error(
         'This looks like a scanned page. ReadingBridge can only read PDFs that contain text.',
       ),
     )
-    renderAt('/library')
+    const user = await openAdd()
     await user.upload(
       screen.getByLabelText('Upload file'),
       new File(['%PDF'], 'scan.pdf', { type: 'application/pdf' }),
@@ -140,5 +144,38 @@ describe('bring your own reading', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'A new story is waiting for you.' }),
     ).toBeInTheDocument()
+  })
+
+  it('keeps prepared readings on the shelf, newest first, and removes them after a confirm', async () => {
+    vi.mocked(prepare).mockResolvedValue({ ...prepared, title: 'First notes' })
+    await paste('She said hello.')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'First notes' }),
+    ).toBeInTheDocument()
+    cleanup()
+
+    vi.mocked(prepare).mockResolvedValue({ ...prepared, title: 'Second notes' })
+    await paste('She said goodbye.')
+    await screen.findByRole('heading', { level: 1, name: 'Second notes' })
+    cleanup()
+
+    const user = userEvent.setup()
+    renderAt('/library')
+    const shelf = document.getElementById('shelf') as HTMLElement
+    const titles = within(shelf)
+      .getAllByRole('heading', { level: 3 })
+      .map((h) => h.textContent)
+    expect(titles.slice(0, 2)).toEqual(['Second notes', 'First notes'])
+    expect(within(shelf).queryByRole('button', { name: 'Remove The New Student' })).toBeNull()
+
+    await user.click(within(shelf).getByRole('button', { name: 'Remove First notes' }))
+    expect(within(shelf).getByText('Remove this reading?')).toBeInTheDocument()
+    await user.click(within(shelf).getByRole('button', { name: 'Cancel' }))
+    expect(within(shelf).getByRole('heading', { name: 'First notes' })).toBeInTheDocument()
+
+    await user.click(within(shelf).getByRole('button', { name: 'Remove First notes' }))
+    await user.click(within(shelf).getByRole('button', { name: 'Yes' }))
+    expect(within(shelf).queryByRole('heading', { name: 'First notes' })).not.toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem('readingbridge.own') ?? '[]')).toHaveLength(1)
   })
 })

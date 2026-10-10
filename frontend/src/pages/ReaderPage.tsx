@@ -1,10 +1,11 @@
-import { ArrowLeft, Lightbulb, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Lightbulb } from 'lucide-react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Arrow } from '../components/Arrow'
 import { BookmarkButton } from '../components/BookmarkButton'
 import { Button } from '../components/Button'
 import { Cover } from '../components/Cover'
+import { HelpCard } from '../components/HelpCard'
 import { Placeholder } from '../components/Placeholder'
 import { ProgressBar } from '../components/ProgressBar'
 import { SentenceText } from '../components/SentenceText'
@@ -40,9 +41,6 @@ interface Panel {
   explanation?: Explanation
 }
 
-const linkButton =
-  'group inline-flex items-center gap-1 rounded-sm text-[0.9375rem] font-medium text-accent decoration-1 underline-offset-4 hover:underline focus-visible:underline'
-
 function Reader({ story }: { story: Story }) {
   const navigate = useNavigate()
   const [settings] = useState(getSettings)
@@ -66,6 +64,10 @@ function Reader({ story }: { story: Story }) {
   const count = story.sections.length
   const isLast = sectionIndex === count - 1
   const found = panel?.status === 'done' && !panel.explanation?.not_in_text
+  const at = panel ? section.sentences.findIndex((s) => s.id === panel.sentenceId) + 1 : 0
+  const parts = at
+    ? [section.sentences.slice(0, at), section.sentences.slice(at)]
+    : [section.sentences]
   const quote = found ? panel.explanation?.clue_quote.replace(/^[\s."]+|[\s."]+$/g, '') : undefined
 
   useEffect(() => {
@@ -132,7 +134,7 @@ function Reader({ story }: { story: Story }) {
           Library
         </Link>
         <div className="flex items-center gap-1 text-r-ink">
-          {story.id !== 'pasted' && <BookmarkButton storyId={story.id} title={story.title} />}
+          <BookmarkButton storyId={story.id} title={story.title} />
           <Link
             to="/settings"
             aria-label="Reading settings"
@@ -162,27 +164,39 @@ function Reader({ story }: { story: Story }) {
             </div>
           </div>
 
-          <p key={sectionIndex} className="fade-in mb-0 mt-10 font-reading text-reading">
-            {section.sentences.map((sentence) => (
-              <SentenceText
-                key={sentence.id}
-                sentence={settings.markers ? sentence : { ...sentence, marker: undefined }}
-                selected={selectedId === sentence.id}
-                quote={quote}
-                onSelect={setSelectedId}
-                onExplain={(id, trigger) => load(id, 'normal', trigger)}
-              />
+          {/* The paragraph breaks at the sentence being explained; its help card sits right under it. */}
+          <div key={sectionIndex} className="fade-in mt-10 font-reading text-reading">
+            {parts.map((sentences, index) => (
+              <Fragment key={index}>
+                {sentences.length > 0 && (
+                  <p className="m-0">
+                    {sentences.map((sentence) => (
+                      <SentenceText
+                        key={sentence.id}
+                        sentence={settings.markers ? sentence : { ...sentence, marker: undefined }}
+                        selected={selectedId === sentence.id}
+                        open={panel?.sentenceId === sentence.id}
+                        quote={quote}
+                        onSelect={setSelectedId}
+                        onExplain={(id, trigger) => load(id, 'normal', trigger)}
+                      />
+                    ))}
+                  </p>
+                )}
+                {index === 0 && panel && (
+                  <HelpCard
+                    key={panel.request}
+                    status={panel.status}
+                    explanation={panel.explanation}
+                    simple={panel.level === 'simple'}
+                    onSimpler={() => load(panel.sentenceId, 'simple', panel.trigger)}
+                    onRetry={() => load(panel.sentenceId, panel.level, panel.trigger)}
+                    onClose={close}
+                  />
+                )}
+              </Fragment>
             ))}
-          </p>
-          {panel && (
-            <ExplanationPanel
-              key={panel.request}
-              panel={panel}
-              onSimpler={() => load(panel.sentenceId, 'simple', panel.trigger)}
-              onRetry={() => load(panel.sentenceId, panel.level, panel.trigger)}
-              onClose={close}
-            />
-          )}
+          </div>
 
           <footer className="mt-14 border-t border-r-line pt-6">
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
@@ -209,85 +223,5 @@ function Reader({ story }: { story: Story }) {
         </article>
       </main>
     </div>
-  )
-}
-
-interface ExplanationPanelProps {
-  panel: Panel
-  onSimpler: () => void
-  onRetry: () => void
-  onClose: () => void
-}
-
-function ExplanationPanel({ panel, onSimpler, onRetry, onClose }: ExplanationPanelProps) {
-  const heading = useRef<HTMLHeadingElement>(null)
-  useEffect(() => heading.current?.focus(), [])
-
-  const { status, explanation } = panel
-  const found = status === 'done' && explanation && !explanation.not_in_text
-
-  return (
-    <aside
-      aria-label="Explanation"
-      className="fade-in mt-8 rounded border border-r-line bg-r-raised p-6"
-    >
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-r-line">
-          <Lightbulb size={18} strokeWidth={1.5} aria-hidden="true" />
-        </span>
-        <h2
-          ref={heading}
-          tabIndex={-1}
-          className="m-0 flex-1 font-display text-[1.5rem] font-normal"
-        >
-          Help me with this
-        </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-r-soft hover:bg-r-line"
-        >
-          <X size={18} strokeWidth={1.75} aria-hidden="true" />
-        </button>
-      </div>
-      <div aria-live="polite" className="mt-4">
-        {status === 'loading' && <p className="m-0 text-r-soft">Reading the story…</p>}
-        {status === 'error' && (
-          <p className="m-0">
-            Couldn't get an explanation.{' '}
-            <button type="button" onClick={onRetry} className={linkButton}>
-              Try again
-            </button>
-          </p>
-        )}
-        {status === 'done' && !found && <p className="m-0">The story doesn't tell us this.</p>}
-        {found && (
-          <>
-            <h3 className="label-caps m-0 flex items-center gap-2 text-r-soft">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full border border-current" />
-              What's the clue?
-            </h3>
-            <blockquote className="m-0 mt-3 border-l-2 border-accent pl-4 font-story text-[1.0625rem] italic">
-              “{explanation.clue_quote}”
-            </blockquote>
-            <p className="m-0 mt-3">{explanation.clue}</p>
-            <h3 className="label-caps m-0 mt-6 flex items-center gap-2 text-r-soft">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent" />
-              What does it mean?
-            </h3>
-            <p className="m-0 mt-2">{explanation.meaning}</p>
-            {panel.level === 'normal' && (
-              <div className="mt-6 border-t border-r-line pt-4">
-                <button type="button" onClick={onSimpler} className={linkButton}>
-                  Say it more simply
-                  <Arrow className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </aside>
   )
 }

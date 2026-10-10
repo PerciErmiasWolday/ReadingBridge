@@ -28,32 +28,45 @@ export function storySkills(story: Story): MarkerType[] {
   return (Object.keys(skills) as MarkerType[]).filter((type) => found.has(type))
 }
 
-const PASTED_KEY = 'readingbridge.pasted'
+const OWN_KEY = 'readingbridge.own'
 const LAST_READ_KEY = 'readingbridge.lastRead'
+const MAX_OWN = 10
 
 export interface LastRead {
   storyId: string
   sectionIndex: number
 }
 
-export function getStory(id: string | undefined): Story | undefined {
-  if (id === 'pasted') {
-    try {
-      const saved = sessionStorage.getItem(PASTED_KEY)
-      return saved ? (JSON.parse(saved) as Story) : undefined
-    } catch {
-      return undefined
-    }
+/** The reader's own pasted or uploaded readings, newest first. Stored only in this browser. */
+export function getOwnReadings(): Story[] {
+  try {
+    return JSON.parse(localStorage.getItem(OWN_KEY) ?? '[]') as Story[]
+  } catch {
+    return []
   }
-  return stories.find((story) => story.id === id)
 }
 
-export function savePastedStory(story: Story): void {
+function writeOwnReadings(readings: Story[]): void {
   try {
-    sessionStorage.setItem(PASTED_KEY, JSON.stringify(story))
+    localStorage.setItem(OWN_KEY, JSON.stringify(readings))
   } catch {
-    // Storage unavailable: the reader will show "Story not found".
+    // Storage unavailable: the reading opens now but is not kept.
   }
+}
+
+/** Saves a prepared reading under a unique id (keeping the newest 10) and returns it. */
+export function saveOwnReading(story: Story): Story {
+  const saved = { ...story, id: `own-${crypto.randomUUID().slice(0, 8)}` }
+  writeOwnReadings([saved, ...getOwnReadings()].slice(0, MAX_OWN))
+  return saved
+}
+
+export function removeOwnReading(id: string): void {
+  writeOwnReadings(getOwnReadings().filter((story) => story.id !== id))
+}
+
+export function getStory(id: string | undefined): Story | undefined {
+  return stories.find((story) => story.id === id) ?? getOwnReadings().find((s) => s.id === id)
 }
 
 export function getLastRead(): LastRead | null {

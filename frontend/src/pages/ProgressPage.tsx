@@ -116,7 +116,7 @@ export function ProgressPage() {
                   Reading history
                 </h2>
                 <p className="mt-2 text-ink-soft">Most recent first.</p>
-                <ol className="m-0 mt-6 list-none border-l-2 border-ivory-deep p-0">
+                <ol className="m-0 mt-6 list-none border-l-[2px] border-ivory-deep p-0">
                   {history.map((event) => (
                     <li key={event.date + event.text} className="relative py-4 pl-8">
                       <span

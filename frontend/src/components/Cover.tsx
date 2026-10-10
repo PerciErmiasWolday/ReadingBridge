@@ -52,18 +52,32 @@ const covers: Record<string, CoverStyle> = {
   },
 }
 
-const pastedCover: CoverStyle = {
+/** The reader's own readings get a plain typographic cover: title, "Your reading", ruled strip. */
+const ownCover: CoverStyle = {
   background: '#FBF8F1',
-  title: ['Your', 'reading'],
+  title: [],
   titleColor: ink.midnight,
-  eyebrowColor: ink.skyDark,
-  art: PastedArt,
+  eyebrowColor: ink.forestDark,
+  art: OwnArt,
+}
+
+/** Breaks a title into at most three short lines for the cover. */
+function coverLines(title: string): string[] {
+  const lines: string[] = []
+  // File names often use _ or - between words; very long words are broken into pieces.
+  const words = title.split(/[\s_-]+/).flatMap((word) => word.match(/.{1,12}/g) ?? [])
+  for (const word of words) {
+    const last = lines[lines.length - 1]
+    if (last && `${last} ${word}`.length <= 12) lines[lines.length - 1] = `${last} ${word}`
+    else lines.push(word)
+  }
+  return lines.length > 3 ? [...lines.slice(0, 2), `${lines[2]}…`] : lines
 }
 
 export function Cover({ story, className = '' }: { story: Story; className?: string }) {
   const grainId = `grain-${useId().replace(/:/g, '')}`
-  const cover = covers[story.id] ?? pastedCover
-  const eyebrow = covers[story.id] ? `A ${story.category} story` : story.category
+  const cover = covers[story.id] ?? { ...ownCover, title: coverLines(story.title) }
+  const eyebrow = covers[story.id] ? `A ${story.category} story` : 'Your reading'
 
   return (
     <svg
@@ -93,7 +107,7 @@ export function Cover({ story, className = '' }: { story: Story; className?: str
       </text>
       {cover.title.map((line, index) => (
         <text
-          key={line}
+          key={index}
           x="24"
           y={100 + index * 44}
           fill={cover.titleColor}
@@ -350,24 +364,29 @@ function TwoFriendsArt() {
   )
 }
 
-function PastedArt() {
+function OwnArt() {
   return (
     <g>
-      {Array.from({ length: 11 }, (_, index) => (
+      <rect
+        x="0.75"
+        y="0.75"
+        width="298.5"
+        height="448.5"
+        fill="none"
+        stroke="#BFB49F"
+        strokeWidth="1.5"
+      />
+      {Array.from({ length: 6 }, (_, index) => (
         <line
           key={index}
           x1="26"
           x2="274"
-          y1={196 + index * 22}
-          y2={196 + index * 22}
+          y1={300 + index * 22}
+          y2={300 + index * 22}
           stroke="#DCD3C2"
           strokeWidth="1.5"
         />
       ))}
-      <rect x="26" y="196" width="190" height="9" rx="2" fill={ink.midnight} opacity="0.12" />
-      <rect x="26" y="218" width="226" height="9" rx="2" fill={ink.midnight} opacity="0.12" />
-      <rect x="26" y="240" width="150" height="9" rx="2" fill={ink.midnight} opacity="0.12" />
-      <path d="M232 0 L262 0 L262 120 L247 106 L232 120 Z" fill={ink.sky} />
     </g>
   )
 }

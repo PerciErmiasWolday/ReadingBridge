@@ -35,9 +35,8 @@ export const formatDate = (iso: string) =>
 export const getLog = (): ReadingLog => read<ReadingLog>(LOG_KEY, {})
 export const getBookmarks = (): string[] => read<string[]>(BOOKMARKS_KEY, [])
 
-/** Records the section being read. Pasted text is never logged: it lasts one session only. */
+/** Records the section being read, for library stories and the reader's own readings. */
 export function logSection(storyId: string, sectionIndex: number, finished = false): void {
-  if (storyId === 'pasted') return
   const log = getLog()
   const now = new Date().toISOString()
   const entry = log[storyId] ?? {

@@ -61,16 +61,19 @@ describe('reader', () => {
     expect(screen.getByRole('button', { name: 'Help me with this' })).toBeInTheDocument()
   })
 
-  it('opens the explanation from a marker, after the paragraph', async () => {
+  it('opens the card directly under the sentence; the paragraph continues below it', async () => {
     await openHeartMarker()
-    const panel = await screen.findByRole('complementary', { name: 'Explanation' })
-    expect(panel).toHaveTextContent(answer.clue)
-    expect(panel).toHaveTextContent(answer.meaning)
+    const card = await screen.findByRole('complementary', { name: 'Explanation' })
+    expect(card).toHaveTextContent(answer.meaning)
+    expect(card).toHaveTextContent(`Clue: “${answer.clue_quote}”`)
     expect(explain).toHaveBeenCalledWith(newStudent, 4, 'normal')
 
-    const paragraph = screen.getByText("Maya's heart beat quickly.").closest('p')
-    expect(paragraph).not.toContainElement(panel)
-    expect(panel.previousElementSibling).toBe(paragraph)
+    const before = card.previousElementSibling as HTMLElement
+    const sentence = screen.getByRole('button', { name: 'Select sentence 5' })
+    expect(before.tagName).toBe('P')
+    expect(before.lastElementChild).toContainElement(sentence)
+    expect(sentence).toHaveAttribute('aria-pressed', 'true')
+    expect(card.nextElementSibling).toHaveTextContent(/^She gave a small smile/)
   })
 
   it('asks for a simpler explanation', async () => {
@@ -83,12 +86,13 @@ describe('reader', () => {
     vi.mocked(explain).mockResolvedValue({ ...answer, not_in_text: true, clue_quote: '' })
     await openHeartMarker()
     expect(await screen.findByText("The story doesn't tell us this.")).toBeInTheDocument()
-    expect(screen.queryByText("What's the clue?")).not.toBeInTheDocument()
+    expect(screen.queryByText(/Clue:/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Say it more simply' })).not.toBeInTheDocument()
   })
 
   it('closes with Escape and returns focus to the marker', async () => {
     const { user, marker } = await openHeartMarker()
-    expect(await screen.findByRole('heading', { name: 'Help me with this' })).toHaveFocus()
+    expect(await screen.findByRole('complementary', { name: 'Explanation' })).toHaveFocus()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('complementary', { name: 'Explanation' })).not.toBeInTheDocument()
     expect(marker).toHaveFocus()
