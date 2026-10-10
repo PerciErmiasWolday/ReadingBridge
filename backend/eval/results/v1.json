@@ -1,0 +1,759 @@
+{
+  "label": "v1",
+  "split": "all",
+  "model": "gpt-4o-mini",
+  "explain": {
+    "by_kind": {
+      "feeling": {
+        "first_try_passed": "9/9",
+        "fallback": "0/9",
+        "not_in_text_correct": "9/9",
+        "meaning_hit": "9/9",
+        "best_clue_hit": "3/9",
+        "n": 9,
+        "errors": 0
+      },
+      "who": {
+        "first_try_passed": "6/6",
+        "fallback": "0/6",
+        "not_in_text_correct": "3/6",
+        "meaning_hit": "1/3",
+        "best_clue_hit": "1/3",
+        "n": 6,
+        "errors": 0
+      },
+      "why": {
+        "first_try_passed": "4/4",
+        "fallback": "0/4",
+        "not_in_text_correct": "4/4",
+        "meaning_hit": "3/4",
+        "best_clue_hit": "1/4",
+        "n": 4,
+        "errors": 0
+      },
+      "idiom": {
+        "first_try_passed": "4/5",
+        "fallback": "1/5",
+        "not_in_text_correct": "4/5",
+        "meaning_hit": "4/5",
+        "best_clue_hit": "4/5",
+        "n": 5,
+        "errors": 0
+      },
+      "sarcasm": {
+        "first_try_passed": "2/3",
+        "fallback": "1/3",
+        "not_in_text_correct": "2/3",
+        "meaning_hit": "2/3",
+        "best_clue_hit": "1/3",
+        "n": 3,
+        "errors": 0
+      },
+      "not_in_text": {
+        "first_try_passed": "3/3",
+        "fallback": "0/3",
+        "not_in_text_correct": "0/3",
+        "meaning_hit": "-",
+        "best_clue_hit": "-",
+        "n": 3,
+        "errors": 0
+      },
+      "ALL": {
+        "first_try_passed": "28/30",
+        "fallback": "2/30",
+        "not_in_text_correct": "22/30",
+        "meaning_hit": "19/24",
+        "best_clue_hit": "10/24",
+        "n": 30,
+        "errors": 0
+      }
+    },
+    "cases": [
+      {
+        "id": "feeling-1",
+        "kind": "feeling",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "It was her first day at a new school, and everything felt unfamiliar.",
+          "clue": "Maya felt nervous because it was her first day at a new school.",
+          "meaning": "Maya's heart beat quickly because she was probably nervous about being in a new place.",
+          "not_in_text": false,
+          "sentence_id": 4,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-2",
+        "kind": "feeling",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "Maya's heart beat quickly.",
+          "clue": "Maya felt nervous on her first day at a new school.",
+          "meaning": "Maya probably felt nervous when she stepped off the bus.",
+          "not_in_text": false,
+          "sentence_id": 0,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-3",
+        "kind": "feeling",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "Maya's heart beat quickly.",
+          "clue": "Maya's heart beating quickly shows she was nervous.",
+          "meaning": "Maya was probably feeling nervous when she looked down at her shoes.",
+          "not_in_text": false,
+          "sentence_id": 6,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "feeling-4",
+        "kind": "feeling",
+        "response": {
+          "type": "why",
+          "clue_quote": "She felt nervous as people started to arrive.",
+          "clue": "Ana felt nervous when people arrived at the bake sale.",
+          "meaning": "Ana bit her lip because she was nervous about the first customer not looking at her cake.",
+          "not_in_text": false,
+          "sentence_id": 2,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-5",
+        "kind": "feeling",
+        "response": {
+          "type": "why",
+          "clue_quote": "He told his mum that everything was fine.",
+          "clue": "Jonah said everything was fine, but he did not come down.",
+          "meaning": "Jonah probably felt worried or upset about something in the letter.",
+          "not_in_text": false,
+          "sentence_id": 3,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-6",
+        "kind": "feeling",
+        "response": {
+          "type": "why",
+          "clue_quote": "A judge wrote something on her clipboard and smiled.",
+          "clue": "The judge smiled after seeing the volcano foam over.",
+          "meaning": "The judge probably liked what she saw with the volcano.",
+          "not_in_text": false,
+          "sentence_id": 11,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "feeling-7",
+        "kind": "feeling",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "She felt nervous as people started to arrive.",
+          "clue": "Ana felt nervous before, but now she is grinning.",
+          "meaning": "Ana is probably happy because her cake sold well.",
+          "not_in_text": false,
+          "sentence_id": 5,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-8",
+        "kind": "feeling",
+        "response": {
+          "type": "why",
+          "clue_quote": "He told his mum that everything was fine.",
+          "clue": "Jonah folded the letter and hid it after lying to his mum.",
+          "meaning": "Jonah probably wanted to hide the letter because he was not really fine.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "feeling-9",
+        "kind": "feeling",
+        "response": {
+          "type": "why",
+          "clue_quote": "Her name was not on it.",
+          "clue": "Lena is upset because her name is not on the team list.",
+          "meaning": "She probably kicked the stone because she was feeling sad or frustrated.",
+          "not_in_text": false,
+          "sentence_id": 3,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "who-1",
+        "kind": "who",
+        "response": {
+          "type": "why",
+          "clue_quote": "Priya laughed and climbed up to get it.",
+          "clue": "Priya climbed to get the frisbee from the tree.",
+          "meaning": "Her knee was probably scraped because she climbed a tree.",
+          "not_in_text": false,
+          "sentence_id": 5,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": false,
+        "best_clue_hit": true
+      },
+      {
+        "id": "who-2",
+        "kind": "who",
+        "response": {
+          "type": "why",
+          "clue_quote": "They sat by the pond and shared the oranges.",
+          "clue": "They wanted a place to sit and share.",
+          "meaning": "They found the flat patch of grass to sit and share the oranges.",
+          "not_in_text": false,
+          "sentence_id": 2,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": false,
+        "best_clue_hit": false
+      },
+      {
+        "id": "who-3",
+        "kind": "who",
+        "response": {
+          "type": "who",
+          "clue_quote": "He added it, and the volcano finally foamed over the sides.",
+          "clue": "The word 'He' refers to Omar.",
+          "meaning": "Omar added the baking soda to the volcano.",
+          "not_in_text": false,
+          "sentence_id": 10,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "who-4",
+        "kind": "who",
+        "response": {
+          "type": "who",
+          "clue_quote": "Tom and Leo raced each other to the park gate.",
+          "clue": "The sentence shows that Tom and Leo are the only characters.",
+          "meaning": "The word 'He' refers to Tom, who got to the gate first.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      },
+      {
+        "id": "who-5",
+        "kind": "who",
+        "response": {
+          "type": "who",
+          "clue_quote": "Mia carried the books, and Rosa carried the umbrella.",
+          "clue": "Rosa is the one who carried the umbrella.",
+          "meaning": "The word 'she' refers to Rosa.",
+          "not_in_text": false,
+          "sentence_id": 2,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      },
+      {
+        "id": "who-6",
+        "kind": "who",
+        "response": {
+          "type": "who",
+          "clue_quote": "Grace told Hannah that she had won the prize.",
+          "clue": "Grace is the one who won the prize.",
+          "meaning": "The sentence means Grace won the prize.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      },
+      {
+        "id": "why-1",
+        "kind": "why",
+        "response": {
+          "type": "why",
+          "clue_quote": "He added it, and the volcano finally foamed over the sides.",
+          "clue": "Omar needed to add baking soda for the volcano to work.",
+          "meaning": "Nothing happened because Omar had not added the baking soda yet.",
+          "not_in_text": false,
+          "sentence_id": 6,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "why-2",
+        "kind": "why",
+        "response": {
+          "type": "who",
+          "clue_quote": "Priya laughed and climbed up to get it.",
+          "clue": "Priya is the one who climbed up to get the frisbee.",
+          "meaning": "The 'her' in the sentence refers to Priya.",
+          "not_in_text": false,
+          "sentence_id": 6,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": false,
+        "best_clue_hit": false
+      },
+      {
+        "id": "why-3",
+        "kind": "why",
+        "response": {
+          "type": "why",
+          "clue_quote": "The power went out during the storm.",
+          "clue": "The power went out, so Dad lit candles for light.",
+          "meaning": "Dad lit the candles because there was no electricity.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "why-4",
+        "kind": "why",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "Maya's heart beat quickly.",
+          "clue": "Maya's heart beating quickly shows she was nervous.",
+          "meaning": "Maya probably felt nervous before. Now she feels a little more relaxed because Leah is friendly.",
+          "not_in_text": false,
+          "sentence_id": 11,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "idiom-1",
+        "kind": "idiom",
+        "response": {
+          "type": "other",
+          "clue_quote": "",
+          "clue": "",
+          "meaning": "The story doesn't tell us this.",
+          "not_in_text": true,
+          "sentence_id": 3,
+          "checks": [
+            "clue_quote \"she patted his shoulder and said, 'Break a leg.'\" is not in the story",
+            "clue_quote \"she patted his shoulder and said, 'Break a leg.'\" is not in the story"
+          ],
+          "fallback": true
+        },
+        "first_try_passed": false,
+        "fallback": true,
+        "not_in_text_correct": false,
+        "meaning_hit": false,
+        "best_clue_hit": false
+      },
+      {
+        "id": "idiom-2",
+        "kind": "idiom",
+        "response": {
+          "type": "idiom",
+          "clue_quote": "it will sell like hot cakes.",
+          "clue": "This shows that Ben thinks the cake will sell very quickly.",
+          "meaning": "The phrase 'sell like hot cakes' means that something sells very fast.",
+          "not_in_text": false,
+          "sentence_id": 3,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "idiom-3",
+        "kind": "idiom",
+        "response": {
+          "type": "idiom",
+          "clue_quote": "the game was in the bag.",
+          "clue": "This shows that Coach thought they would win easily.",
+          "meaning": "The phrase means that victory is certain. Coach is confident they will win.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "idiom-4",
+        "kind": "idiom",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "He had butterflies in his stomach before his speech.",
+          "clue": "This shows he was nervous before speaking.",
+          "meaning": "He probably felt nervous before his speech.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "idiom-5",
+        "kind": "idiom",
+        "response": {
+          "type": "idiom",
+          "clue_quote": "she told Kai he was skating on thin ice.",
+          "clue": "This shows that Mum thinks Kai is in trouble.",
+          "meaning": "Mum probably means that Kai is doing something risky or wrong.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "sarcasm-1",
+        "kind": "sarcasm",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "Omar said, frowning at the table.",
+          "clue": "Omar is frowning, which shows he is not happy.",
+          "meaning": "Omar is probably feeling frustrated because his volcano did not work.",
+          "not_in_text": false,
+          "sentence_id": 8,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": true
+      },
+      {
+        "id": "sarcasm-2",
+        "kind": "sarcasm",
+        "response": {
+          "type": "other",
+          "clue_quote": "",
+          "clue": "",
+          "meaning": "The story doesn't tell us this.",
+          "not_in_text": true,
+          "sentence_id": 1,
+          "checks": [
+            "clue_quote \"Nora said, 'Well, that was fun.'\" is not in the story",
+            "clue_quote \"Nora said, 'Well, that was fun.'\" is not in the story"
+          ],
+          "fallback": true
+        },
+        "first_try_passed": false,
+        "fallback": true,
+        "not_in_text_correct": false,
+        "meaning_hit": false,
+        "best_clue_hit": false
+      },
+      {
+        "id": "sarcasm-3",
+        "kind": "sarcasm",
+        "response": {
+          "type": "feeling",
+          "clue_quote": "This is my lucky day,",
+          "clue": "He says this after spilling juice and dropping his phone.",
+          "meaning": "He probably feels the opposite of lucky because of the accidents.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": true,
+        "meaning_hit": true,
+        "best_clue_hit": false
+      },
+      {
+        "id": "not_in_text-1",
+        "kind": "not_in_text",
+        "response": {
+          "type": "other",
+          "clue_quote": "Inside was the thing she had wanted for months.",
+          "clue": "Zoe wanted something for a long time.",
+          "meaning": "The thing inside the box is something Zoe really wanted.",
+          "not_in_text": false,
+          "sentence_id": 1,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      },
+      {
+        "id": "not_in_text-2",
+        "kind": "not_in_text",
+        "response": {
+          "type": "other",
+          "clue_quote": "Mr Hall read the message on his phone and put it away.",
+          "clue": "Mr Hall is the person who read the message.",
+          "meaning": "The sentence is about Mr Hall reading a message on his phone.",
+          "not_in_text": false,
+          "sentence_id": 0,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      },
+      {
+        "id": "not_in_text-3",
+        "kind": "not_in_text",
+        "response": {
+          "type": "other",
+          "clue_quote": "Then she zipped it shut and left.",
+          "clue": "Ivy packed something into her bag before she zipped it shut.",
+          "meaning": "Ivy put an item in her bag before closing it.",
+          "not_in_text": false,
+          "sentence_id": 0,
+          "checks": [
+            "passed"
+          ]
+        },
+        "first_try_passed": true,
+        "fallback": false,
+        "not_in_text_correct": false,
+        "meaning_hit": null,
+        "best_clue_hit": null
+      }
+    ]
+  },
+  "markers": {
+    "summary": {
+      "precision": "5/13",
+      "recall": "5/14",
+      "on_stated_feelings": 3
+    },
+    "cases": [
+      {
+        "id": "new-student",
+        "found": [
+          1,
+          4,
+          10,
+          11
+        ],
+        "expected": [
+          0,
+          4,
+          6
+        ],
+        "correct": 1,
+        "on_stated_feelings": 2
+      },
+      {
+        "id": "science-fair",
+        "found": [
+          3,
+          8,
+          11
+        ],
+        "expected": [
+          3,
+          8,
+          10
+        ],
+        "correct": 2,
+        "on_stated_feelings": 0
+      },
+      {
+        "id": "two-friends",
+        "found": [
+          3,
+          4,
+          6
+        ],
+        "expected": [
+          5,
+          8
+        ],
+        "correct": 0,
+        "on_stated_feelings": 0
+      },
+      {
+        "id": "bake-sale",
+        "found": [
+          1,
+          3
+        ],
+        "expected": [
+          2,
+          3,
+          5
+        ],
+        "correct": 1,
+        "on_stated_feelings": 1
+      },
+      {
+        "id": "the-letter",
+        "found": [
+          3
+        ],
+        "expected": [
+          1,
+          2,
+          3
+        ],
+        "correct": 1,
+        "on_stated_feelings": 0
+      }
+    ]
+  }
+}
