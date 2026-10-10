@@ -15,6 +15,7 @@ describe('explain (mock)', () => {
       clue: expect.stringContaining('MOCK'),
       meaning: expect.stringContaining('MOCK'),
       not_in_text: false,
+      sentence_id: 4,
       checks: [expect.stringContaining('MOCK')],
     })
   })
@@ -29,8 +30,8 @@ describe('explain (mock)', () => {
 describe('The New Student', () => {
   const sentences = newStudent.sections.flatMap((section) => section.sentences)
 
-  it('has sequential numeric sentence ids', () => {
-    expect(sentences.map((s) => s.id)).toEqual(sentences.map((_, i) => i + 1))
+  it('has sequential 0-based sentence ids matching the backend', () => {
+    expect(sentences.map((s) => s.id)).toEqual(sentences.map((_, i) => i))
   })
 
   it('marks the three required feeling sentences', () => {

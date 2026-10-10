@@ -1,59 +1,46 @@
 import type { Story } from '../types'
 
-/*
- * STAND-IN TEXT.
- * backend/samples/new_student.txt was not present when Phase 1 was built, so
- * this is placeholder prose written around the three required marked
- * sentences. Replace the sentences below with the sample file's text, keeping
- * numeric IDs sequential across the whole story and the three feeling markers.
- */
+// Text from backend/samples/new_student.txt, split with backend/text_utils.split_sentences.
+// Sentence ids are the backend's 0-based indices across the whole story; do not renumber.
 export const newStudent: Story = {
   id: 'new-student',
   title: 'The New Student',
   category: 'School',
-  readMinutes: 4,
+  readMinutes: 1,
   sections: [
     {
       id: 's1',
       sentences: [
         {
-          id: 1,
-          text: 'Maya stepped off the bus and stood very still on the pavement, holding both straps of her backpack.',
+          id: 0,
+          text: 'Maya stepped off the bus and held the strap of her backpack a little tighter.',
           marker: { type: 'feeling' },
         },
-        { id: 2, text: 'The school was larger than the one she had left behind in the spring.' },
+        { id: 1, text: 'It was her first day at a new school, and everything felt unfamiliar.' },
         {
-          id: 3,
-          text: 'Groups of students walked past her, talking and laughing as if they had known each other forever.',
+          id: 2,
+          text: 'The building looked bigger than her old school, and the hallways were full of students she had never met.',
         },
-        { id: 4, text: "Maya's heart beat quickly.", marker: { type: 'feeling' } },
       ],
     },
     {
       id: 's2',
       sentences: [
-        { id: 5, text: 'Inside, a teacher named Mr. Okafor showed her to Room 12.' },
-        {
-          id: 6,
-          text: 'He told the class that Maya had just moved from another city, and everyone turned to look.',
-        },
-        { id: 7, text: 'Then she looked down at her shoes.', marker: { type: 'feeling' } },
-        { id: 8, text: 'A girl near the window moved her bag off the empty chair beside her.' },
+        { id: 3, text: 'In homeroom, the teacher smiled and asked Maya to introduce herself.' },
+        { id: 4, text: "Maya's heart beat quickly.", marker: { type: 'feeling' } },
+        { id: 5, text: 'She gave a small smile and said, "Hi, I\'m Maya."' },
+        { id: 6, text: 'Then she looked down at her shoes.', marker: { type: 'feeling' } },
       ],
     },
     {
       id: 's3',
       sentences: [
-        { id: 9, text: '"You can sit here if you like," the girl said. "I\'m Priya."' },
-        {
-          id: 10,
-          text: 'Maya sat down and placed her pencil case carefully in the centre of the desk.',
-        },
-        {
-          id: 11,
-          text: 'When the lesson began, Priya slid her notes across so Maya could see where they were up to.',
-        },
-        { id: 12, text: 'By lunchtime, Maya had stopped counting the minutes until the bell.' },
+        { id: 7, text: 'After class, a girl with a kind smile walked up to her.' },
+        { id: 8, text: '"Hi, I\'m Leah," she said.' },
+        { id: 9, text: '"I\'m new here too.' },
+        { id: 10, text: 'Want to sit together at lunch?"' },
+        { id: 11, text: 'Maya felt a little more relaxed.' },
+        { id: 12, text: "Maybe this new school wouldn't be so scary after all." },
       ],
     },
   ],

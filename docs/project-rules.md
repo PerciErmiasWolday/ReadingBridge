@@ -2,6 +2,10 @@
 
 Every phase must follow this file. If a rule here conflicts with a request, raise it before building.
 
+**Keep code minimal.** Write the smallest amount of code that meets the requirement. No extra
+abstractions, helper layers, config systems, wrapper components, or speculative features. Prefer
+editing existing files over adding new ones.
+
 ## Product
 
 ReadingBridge is an AI-assisted reading app designed with autistic readers in mind: students who
@@ -21,9 +25,9 @@ The build has 7 phases. Phase 1 (foundation, design system, shell) is complete.
 
 - `/frontend` — React 19 + TypeScript (strict) + Vite, Tailwind CSS v3, React Router, Lucide,
   Vitest + React Testing Library, ESLint 9 + Prettier, fonts self-hosted via @fontsource.
-- `/backend` — Python FastAPI. **Do not modify it.** Frontend types must match its API.
-  (At the end of Phase 1 the folder was not yet in the repository; re-check `backend/README.md`
-  and `backend/main.py` against `frontend/src/types` when it arrives.)
+- `/backend` — Python FastAPI. **Do not modify it.** Frontend types must match its API
+  (`POST /split`, `POST /explain`; see `backend/README.md`). Setup:
+  `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`; tests: `.venv/bin/pytest -q`.
 
 Commands (run in `/frontend`): `npm run dev`, `npm run build`, `npm run lint`, `npm test`,
 `npm run format`. All four of build, lint, test and format:check must pass before a phase ends.
@@ -162,20 +166,17 @@ interface Explanation {
   clue: string
   meaning: string
   not_in_text: boolean
-  checks: string[]
-  fallback?: boolean
+  sentence_id: number
+  checks: string[]   // "passed" or the failure reason, one per attempt
+  fallback?: boolean // true when both attempts failed the grounding checks
 }
 
 type ExplainLevel = 'normal' | 'simple'
 ```
 
+Sentence ids are the backend's 0-based indices from `backend/text_utils.split_sentences` over the
+whole story. Story data must be generated with that function, never split by hand.
+
 `frontend/src/services/explain.ts` exports
 `explain(story, sentenceId, level): Promise<Explanation>`. It is currently a **MOCK**
 (`IS_MOCK = true`); a later phase points it at the backend without changing components.
-
-## Known stand-ins
-
-- `frontend/src/data/newStudent.ts` is stand-in prose: `backend/samples/new_student.txt` was not
-  available in Phase 1. Replace it with the sample text, keeping sequential numeric sentence IDs and
-  the three feeling markers ("Maya stepped off the bus…", "Maya's heart beat quickly.",
-  "Then she looked down at her shoes.").

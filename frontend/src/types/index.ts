@@ -26,6 +26,7 @@ export interface Explanation {
   clue: string
   meaning: string
   not_in_text: boolean
+  sentence_id: number
   checks: string[]
   fallback?: boolean
 }

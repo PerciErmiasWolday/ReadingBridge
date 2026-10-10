@@ -24,6 +24,7 @@ export async function explain(
       clue: '',
       meaning: 'MOCK: This sentence could not be found in the story.',
       not_in_text: true,
+      sentence_id: sentenceId,
       checks: [],
       fallback: true,
     }
@@ -41,6 +42,7 @@ export async function explain(
       ? 'MOCK: A short, plain explanation will appear here.'
       : 'MOCK: An explanation grounded in this sentence will appear here.',
     not_in_text: false,
-    checks: ['MOCK: A question you can ask yourself about this sentence.'],
+    sentence_id: sentenceId,
+    checks: ['MOCK: passed'],
   }
 }
