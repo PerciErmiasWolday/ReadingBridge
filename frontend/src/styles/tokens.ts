@@ -1,16 +1,15 @@
 /** Colour tokens as data, for the styleguide. Kept in sync with tokens.css by a test. */
 export const colorTokens = [
-  { name: '--paper', hex: '#F3F1EC', use: 'Page background' },
-  { name: '--surface', hex: '#EAE7E0', use: 'Subtle raised areas such as the panel background' },
-  { name: '--ink', hex: '#22221F', use: 'Primary text and the primary button fill' },
-  { name: '--ink-soft', hex: '#5E5B54', use: 'Secondary text (minimum for any readable text)' },
-  { name: '--rule', hex: '#D6D2C8', use: 'Hairline borders and dividers' },
-  { name: '--rule-strong', hex: '#B9B4A8', use: 'Hover borders and the strip dividers' },
-  {
-    name: '--sage',
-    hex: '#576B5E',
-    use: 'The single interface accent: links, focus, selected nav',
-  },
-  { name: '--sage-tint', hex: '#E3E7E1', use: 'Sentence selection and highlight background' },
-  { name: '--clay', hex: '#A65F45', use: 'Markers only. Used nowhere else.' },
+  { name: '--ivory', hex: '#F5EFE3', use: 'Page background, warm paper' },
+  { name: '--ivory-deep', hex: '#EBE2D0', use: 'Bands that set a section apart' },
+  { name: '--paper', hex: '#FBF8F1', use: 'Raised paper: panels, inputs' },
+  { name: '--midnight', hex: '#18213D', use: 'Headlines, primary buttons, the wordmark' },
+  { name: '--ink', hex: '#252B3F', use: 'Body text' },
+  { name: '--ink-soft', hex: '#5A5F73', use: 'Secondary text (minimum for any readable text)' },
+  { name: '--line', hex: '#DCD3C2', use: 'Rules and borders' },
+  { name: '--line-strong', hex: '#BFB49F', use: 'Hover borders' },
+  { name: '--accent', hex: '#2E5B47', use: 'Forest green: links, focus, progress, active nav' },
+  { name: '--accent-tint', hex: '#DDE8DF', use: 'Forest wash: selected chips' },
+  { name: '--mustard-tint', hex: '#F3E3B8', use: 'Sentence selection: the only mustard' },
+  { name: '--marker', hex: '#B9502F', use: 'Marker dots only. Used nowhere else.' },
 ] as const

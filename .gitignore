@@ -10,3 +10,6 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Design inspiration screenshots (third-party references; not committed)
+/Screenshot *.png

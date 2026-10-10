@@ -4,7 +4,7 @@ export function TextLink({ className = '', ...props }: LinkProps) {
   return (
     <Link
       {...props}
-      className={`rounded-sm text-sage underline-offset-4 decoration-1 hover:underline focus-visible:underline ${className}`}
+      className={`rounded-sm font-medium text-accent underline-offset-4 decoration-1 hover:underline focus-visible:underline ${className}`}
     />
   )
 }

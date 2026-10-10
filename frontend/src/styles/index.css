@@ -1,9 +1,11 @@
 @import '@fontsource/instrument-serif/400.css';
+@import '@fontsource/instrument-serif/400-italic.css';
 @import '@fontsource/source-serif-4/400.css';
 @import '@fontsource/source-serif-4/400-italic.css';
-@import '@fontsource/source-serif-4/500.css';
+@import '@fontsource/source-serif-4/600.css';
 @import '@fontsource/instrument-sans/400.css';
 @import '@fontsource/instrument-sans/500.css';
+@import '@fontsource/instrument-sans/600.css';
 @import '@fontsource/atkinson-hyperlegible/400.css';
 @import '@fontsource/atkinson-hyperlegible/400-italic.css';
 @import './tokens.css';
@@ -14,7 +16,7 @@
 
 @layer base {
   html {
-    background: var(--paper);
+    background: var(--ivory);
     color: var(--ink);
     font-family: var(--font-ui);
     font-weight: 400;
@@ -24,18 +26,20 @@
 
   body {
     margin: 0;
-    background: var(--paper);
     min-height: 100vh;
+    background-color: var(--ivory);
+    /* Paper grain: a faint, static noise texture. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .29 0 0 0 0 .2 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background: var(--sage-tint);
+    background: var(--mustard-tint);
     color: var(--ink);
   }
 
-  /* Focus ring: 2px sage outline, 2px offset, always visible on keyboard focus. */
+  /* Focus ring: 2px accent outline, 2px offset, always visible on keyboard focus. */
   :focus-visible {
-    outline: 2px solid var(--sage);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
@@ -43,37 +47,124 @@
     outline: none;
   }
 
+  /* Motion is off unless the reader turned it on, and always off when the device asks for less. */
+  :root:not([data-motion='on']) *,
+  :root:not([data-motion='on']) *::before,
+  :root:not([data-motion='on']) *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
+      animation-delay: 0ms !important;
       transition-duration: 0ms !important;
       scroll-behavior: auto !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-motion='on'] {
+      scroll-behavior: smooth;
     }
   }
 }
 
 @layer components {
-  /* Small uppercase tracked label used by the ruled metadata strip. */
+  /* Small uppercase tracked label: eyebrows above headlines, story metadata. */
   .label-caps {
     font-family: var(--font-ui);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     line-height: 1rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     font-weight: 500;
   }
 
-  /* The only animation: a 150ms fade in (0ms under prefers-reduced-motion). */
+  /* Reading themes. The reader and the Settings preview carry data-theme. */
+  .reader[data-theme='white'] {
+    --r-bg: #ffffff;
+    --r-raised: #f7f5f0;
+    --r-ink: #1f2433;
+    --r-soft: #555a6e;
+    --r-line: #e6e2d9;
+    --r-select: #f3e3b8;
+  }
+  .reader[data-theme='sepia'] {
+    --r-bg: #f1e6cf;
+    --r-raised: #e9dcc0;
+    --r-ink: #3a2f22;
+    --r-soft: #6a5a45;
+    --r-line: #dccdae;
+    --r-select: #e6cf93;
+  }
+  .reader[data-theme='night'] {
+    --r-bg: #141a2e;
+    --r-raised: #1c2340;
+    --r-ink: #e8e2d4;
+    --r-soft: #aeb3c5;
+    --r-line: #2a3150;
+    --r-select: #3a3f5c;
+    --accent: #8fc2a8;
+    --marker: #e58b6a;
+  }
+  .reader {
+    background: var(--r-bg);
+    color: var(--r-ink);
+  }
+
+  /* Motion. Every duration is a multiple of --motion-duration, so reduced motion stops them all. */
+  .rise {
+    animation: rise calc(var(--motion-duration) * 5) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .draw-in {
+    transform-origin: left center;
+    animation: draw-in calc(var(--motion-duration) * 7) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .pop {
+    animation: pop calc(var(--motion-duration) * 2) ease-out;
+  }
   .fade-in {
     animation: fade-in var(--motion-duration) ease-out;
   }
 
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+  @keyframes draw-in {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes pop {
+    50% {
+      transform: scale(1.25);
+    }
+  }
   @keyframes fade-in {
     from {
       opacity: 0;
     }
+  }
+
+  /* Lined paper for the "bring your own reading" textarea. */
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--reading-line-height) * 1em - 1px),
+      var(--line) calc(var(--reading-line-height) * 1em - 1px),
+      var(--line) calc(var(--reading-line-height) * 1em)
+    );
+    background-attachment: local;
+    line-height: var(--reading-line-height);
   }
 }

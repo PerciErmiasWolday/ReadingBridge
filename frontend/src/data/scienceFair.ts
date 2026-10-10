@@ -43,7 +43,11 @@ export const scienceFair: Story = {
       id: 's3',
       sentences: [
         { id: 9, text: 'Then he noticed the baking soda was still in his bag.' },
-        { id: 10, text: 'He added it, and the volcano finally foamed over the sides.' },
+        {
+          id: 10,
+          text: 'He added it, and the volcano finally foamed over the sides.',
+          marker: { type: 'why' },
+        },
         { id: 11, text: 'A judge wrote something on her clipboard and smiled.' },
       ],
     },

@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 /**
- * Austurbane design tokens. Every value maps to a CSS variable in
+ * ReadingBridge design tokens. Every colour maps to a CSS variable in
  * src/styles/tokens.css. The default Tailwind palette, radii and shadows are
  * replaced (not extended) so off-system values cannot be used by accident.
  */
@@ -11,15 +11,25 @@ const config: Config = {
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
+      white: '#ffffff',
+      ivory: 'var(--ivory)',
+      'ivory-deep': 'var(--ivory-deep)',
       paper: 'var(--paper)',
-      surface: 'var(--surface)',
+      midnight: 'var(--midnight)',
       ink: 'var(--ink)',
       'ink-soft': 'var(--ink-soft)',
-      rule: 'var(--rule)',
-      'rule-strong': 'var(--rule-strong)',
-      sage: 'var(--sage)',
-      'sage-tint': 'var(--sage-tint)',
-      clay: 'var(--clay)',
+      line: 'var(--line)',
+      'line-strong': 'var(--line-strong)',
+      accent: 'var(--accent)',
+      'accent-tint': 'var(--accent-tint)',
+      'mustard-tint': 'var(--mustard-tint)',
+      marker: 'var(--marker)',
+      'r-bg': 'var(--r-bg)',
+      'r-raised': 'var(--r-raised)',
+      'r-ink': 'var(--r-ink)',
+      'r-soft': 'var(--r-soft)',
+      'r-line': 'var(--r-line)',
+      'r-select': 'var(--r-select)',
     },
     fontFamily: {
       display: 'var(--font-display)',
@@ -30,11 +40,14 @@ const config: Config = {
     fontWeight: {
       normal: '400',
       medium: '500',
+      semibold: '600',
     },
     borderRadius: {
       none: '0',
-      sm: '2px',
-      dot: '50%', // the marker dot only — never for buttons or containers
+      sm: '4px',
+      DEFAULT: '6px', // inputs, panels
+      lg: '10px', // the hero arch frame and large panels
+      full: '9999px', // pill buttons, chips, dots, progress bars
     },
     borderWidth: {
       0: '0',
@@ -42,6 +55,9 @@ const config: Config = {
     },
     boxShadow: {
       none: 'none',
+      // A printed book resting on paper: a tight contact shadow plus a soft fall-off.
+      book: '0 1px 1px rgb(24 33 61 / 0.18), 0 10px 24px -8px rgb(24 33 61 / 0.35)',
+      panel: '0 1px 2px rgb(24 33 61 / 0.06), 0 8px 24px -12px rgb(24 33 61 / 0.18)',
     },
     extend: {
       fontSize: {

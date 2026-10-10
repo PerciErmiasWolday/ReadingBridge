@@ -19,7 +19,8 @@ refers to, cause and effect). It must also work for any student who finds those 
 Students read a story, tap a quiet marker or select any sentence for a short explanation grounded in
 the text, and can optionally quiz themselves. Nothing interrupts reading unless the student asks.
 
-The build has 7 phases. Phase 1 (foundation, design system, shell) is complete.
+The build has 7 phases. Phases 1–3 (foundation, Library, reading screen) are complete, followed by a
+full visual redesign (the design system below). Phase 4 is the optional quiz.
 
 ## Repository
 
@@ -41,116 +42,111 @@ Source layout: `src/components`, `src/pages`, `src/data`, `src/types`, `src/serv
 
 Routes: `/library`, `/read/:storyId`, `/my-reading`, `/progress`, `/settings`, and `/styleguide`
 (development only; excluded from production builds). `/` redirects to `/library`.
-On `/read/:storyId` the left navigation is hidden; only a quiet "← Library" link shows.
+All routes except the reader use `AppShell` (wordmark, horizontal `MainNav`, colophon footer).
+`/read/:storyId` uses `ReaderLayout`: no navigation, only "← Library", a bookmark and an "Aa" link
+to Settings, so the story is the only thing on screen.
 
-## Visual direction: Austurbane
+## Design system: calm bookshop
 
-Austere + urbane. The restraint of premium apothecary and tea packaging, translated into a reading
-app. Quiet material, precise structure, editorial typography. The story is always the most
-important thing on the screen.
+This is the only design system. (It replaced the earlier "Austurbane" direction and the
+rounded-card version; neither applies any more.) Reference mockups: `docs/design/`.
 
-1. **Paper and mineral colours.** Warm off-white paper, bone and stone neutrals, charcoal ink, one
-   muted sage, one clay accent reserved for markers. Nothing saturated.
-2. **Hairline structure instead of cards.** 1px rules divide content, like a printed label. Content
-   sits on the page, not in floating boxes. Corners 0–2px. No shadows. Elevation = hairline border
-   plus a slight surface-tone change.
-3. **The ruled metadata strip** (`MetaStrip`). Small facts in hairline-ruled cells, small uppercase
-   tracked sans, label/value pairs. Use for story headers and library entries only.
-4. **Editorial typography.** Display serif for titles and the wordmark only; a readable text serif
-   for stories; a neutral grotesk for interface. The contrast between them is the decoration.
-5. **Generous, deliberate whitespace on a strict grid.** Left-aligned, ragged right. Asymmetry is
-   fine; clutter is not.
-6. **Illustration is rare and botanical.** At most one fine-line monochrome specimen drawing per
-   story cover. Until then, covers are typographic (`StoryCover`: title, strip, thin frame) with an
-   empty `data-slot="illustration"` area.
+A quiet independent bookshop: warm paper, editorial type, original screenprint-style covers. It
+should be memorable without being stimulating, and the reading view stays plain.
 
-**Austere never means hard to read.** Readability always wins. Story text is never light grey,
-never small, never in the display serif. All text meets WCAG AA.
+1. **Warm paper.** Ivory page with a faint static grain (`body` background). Sections are set apart
+   by colour bands (`ivory-deep`, one `midnight` band) and hairline rules, not repeated cards.
+2. **Editorial type.** Instrument Serif headlines, often with one italic forest-green word. Small
+   tracked uppercase eyebrows (`.label-caps`). Story text is never in the display face.
+3. **Asymmetric composition.** Unequal columns; the shelf is staggered by hand (`shelfOffsets`).
+   Covers rest on the page with a printed-book shadow (`shadow-book`).
+4. **Original art only.** `Cover` draws each story's cover as flat screenprint layers in midnight,
+   forest, dusty blue, sand and ivory, with slight misregistration and grain. A new story needs its
+   own art in `Cover.tsx`; unknown ids get the typographic "Your reading" cover. `HeroArt` is the
+   Library's arch window with a bridge over an open book. No coral or mustard in any art.
+5. **Library above the fold.** The hero is compact (eyebrow, headline, one paragraph, small art; no
+   buttons) so Continue reading and the top of the shelf show on a laptop without scrolling.
+6. **Honest data.** My Reading and Progress show only the reader's own log (`data/readingLog.ts`:
+   sections reached, finished stories, bookmarks). Sample data appears only behind "See an example"
+   and is labelled wherever it shows. Help requests are not recorded or counted anywhere.
 
-## Design tokens
+### Colour
 
-Source of truth: `frontend/src/styles/tokens.css`. Tailwind maps to these variables in
-`frontend/tailwind.config.ts`, and the default Tailwind palette, radii and shadows are **replaced**,
-so only token classes exist (`bg-paper`, `text-ink-soft`, `border-rule`, …).
+Source of truth: `frontend/src/styles/tokens.css` (mirrored in `styles/tokens.ts`; a test keeps
+them in sync). Tailwind maps to these variables, and the default palette, radii and shadows are
+**replaced**. Tailwind `/opacity` modifiers do not work on these variable colours; use a token.
 
 | Token           | Value     | Use                                                       |
 | --------------- | --------- | --------------------------------------------------------- |
-| `--paper`       | `#F3F1EC` | Page background                                           |
-| `--surface`     | `#EAE7E0` | Subtle raised areas such as the panel background          |
-| `--ink`         | `#22221F` | Primary text and the primary button fill                  |
-| `--ink-soft`    | `#5E5B54` | Secondary text (minimum for any readable text)            |
-| `--rule`        | `#D6D2C8` | Hairline borders and dividers                             |
-| `--rule-strong` | `#B9B4A8` | Hover borders and the strip dividers                      |
-| `--sage`        | `#576B5E` | The single interface accent: links, focus, selected nav   |
-| `--sage-tint`   | `#E3E7E1` | Sentence selection and highlight background               |
-| `--clay`        | `#A65F45` | Markers only. Used nowhere else.                          |
+| `--ivory`       | `#F5EFE3` | Page background                                           |
+| `--ivory-deep`  | `#EBE2D0` | Bands that set a section apart                            |
+| `--paper`       | `#FBF8F1` | Raised paper: panels, inputs                              |
+| `--midnight`    | `#18213D` | Headlines, primary buttons, the wordmark, the paste band  |
+| `--ink`         | `#252B3F` | Body text                                                 |
+| `--ink-soft`    | `#5A5F73` | Secondary text (lightest allowed for readable text)       |
+| `--line`        | `#DCD3C2` | Rules and borders                                         |
+| `--line-strong` | `#BFB49F` | Hover borders                                             |
+| `--accent`      | `#2E5B47` | Forest: links, focus ring, progress, active nav, numerals |
+| `--accent-tint` | `#DDE8DF` | Selected options, the example badge                       |
+| `--mustard-tint`| `#F3E3B8` | Sentence selection. The **only** mustard in the app       |
+| `--marker`      | `#B9502F` | Marker dots. The **only** clay/coral anywhere (test-checked) |
 
-`--sage` was specified as `#5F7466`, which is 4.45:1 on paper and fails AA for text. It was darkened
-to `#576B5E` (same hue): 5.07:1 on paper, 4.63:1 on surface, 4.57:1 on sage-tint. Do not revert.
+Reading themes (`.reader[data-theme=ivory|white|sepia|night]` in `index.css`) set `--r-bg`,
+`--r-raised`, `--r-ink`, `--r-soft`, `--r-line`, `--r-select`; night also lightens `--accent` and
+`--marker`. Every text pair in every theme passes WCAG AA.
 
-**Typography**
+### Type
 
-- Display (titles, wordmark only): Instrument Serif — `font-display`
-- Story text: Source Serif 4, 20px, line-height 1.75, measure 65ch — `font-reading text-reading max-w-measure`
-- Interface: Instrument Sans — `font-ui` (the default)
-- Readable alternative: Atkinson Hyperlegible — `var(--font-readable)`
-- Strip labels: Instrument Sans 11–12px, uppercase, 0.08em tracking — `.label-caps`
-- Two weights only: 400 (`font-normal`) and 500 (`font-medium`)
+- Instrument Serif (400 + italic): headlines, the wordmark — `font-display`
+- Source Serif 4: stories — `font-reading text-reading max-w-measure` (follows reader settings)
+- Instrument Sans: interface — `font-ui` (the default)
+- Atkinson Hyperlegible: a reading choice in Settings
 
-**Reader preferences** — CSS variables a Settings page sets on `:root`:
-`--reading-font-family` (`var(--font-story)` or `var(--font-readable)`), `--reading-font-size`
-(rem, so browser zoom is respected), `--reading-line-height`, `--reading-measure`.
+### Motion: off by default
 
-**Spacing, shape, motion**
+`--motion-duration` is `0ms` unless the reader turns **Motion: On** in Settings
+(`data-motion="on"` on `:root`) **and** the device does not ask for reduced motion. A global rule
+also zeroes every animation and transition when motion is not on. Every animation is a multiple of
+`--motion-duration`, so nothing moves by default. With motion on: content rises in once (`.rise`,
+`Reveal`), progress lines draw in (`.draw-in`), covers lift on hover, arrows nudge, bookmarks pop,
+and the help card fades in. Never add looping animation or anything that bypasses this switch.
 
-- 4px base spacing scale (Tailwind's default scale: `1` = 4px)
-- Radius: `rounded-none` (0) for structure, `rounded-sm` (2px) for buttons and inputs. No pills.
-  `rounded-dot` exists only for the marker dot.
-- Borders: 1px hairlines only (`border` is 1px; there are no thicker widths)
-- Shadows: none (`shadow-none` is the only shadow)
-- Motion: opacity and transform only, 150ms (`--motion-duration`), 0ms under
-  `prefers-reduced-motion`
+### Reader settings
 
-**Components**
+`data/settings.ts`, applied on start in `main.tsx`: font, size (16–28px, set in rem), line
+spacing, theme, motion (`off` default | `on`), and whether markers show.
 
-- Primary button (`Button`): ink fill, paper text, 2px radius, rectangular
-- Secondary button (`Button variant="secondary"`): transparent, 1px rule border, ink text
-- Text link (`TextLink`): sage, underline on hover and focus
-- Focus ring: 2px sage outline, 2px offset, global `:focus-visible` rule in `styles/index.css`.
-  Never use `outline-none` or remove outlines (a test enforces this).
-- Marker (`Marker`, via `SentenceText`): 6px clay dot after the sentence in a 24px hit area. On
-  hover or focus the marked phrase gets a subtle clay underline, so colour is never the only cue.
-- Explanation panel (`ReaderPage`): inline after the paragraph, never over the text. Hairline border,
-  surface background, square corners. The clue_quote is underlined in sage in the story.
-- Fade: `.fade-in` (150ms opacity) is the only animation.
-- Selected nav item: sage text plus a 1px sage rule on its left edge, never a filled pill.
-- Wordmark: "ReadingBridge" set in Instrument Serif. No logo, no illustration.
+### Components
 
-## Anti-AI design rules
+- `Button` / `buttonClass`: pill buttons. `primary` midnight, `secondary` outlined, `reading`
+  follows the reading theme. Put `<Arrow />` inside for the forward nudge.
+- Focus ring: 2px accent outline, 2px offset, global `:focus-visible` rule. Never remove outlines.
+- `Marker` (via `SentenceText`): 8px marker dot in a 24px hit area, one colour for every type.
+  Click, tap, Enter, or resting the pointer 400ms opens help (hover does not move focus).
+- Any sentence can be selected (`r-select` background) and then offers "Help me with this".
+- Help card (`ReaderPage`): inline below the paragraph, never over text. "What's the clue?" (the
+  quote, also underlined in the story), "What does it mean?", "Say it more simply →".
+- `BookmarkButton`, `ProgressBar`, `Reveal`, `ExampleToggle`, `Cover`, `HeroArt`.
 
-Do not use:
+### Do not
 
-- Gradients, glassmorphism, glow, or blur
-- Decorative blobs or floating shapes
-- Large rounded cards, or putting every section in a card
-- Drop shadows
-- Emoji anywhere in the interface
-- Generic dashboard widgets, stat tiles, or charts
-- Purple, cyan, or bright blue "AI" branding
-- Oversized welcome banners or hero sections
-- The "big heading, subtitle, three feature cards, colourful CTA" layout
-- Pill-shaped buttons
-- More than one accent colour on a screen (clay markers excepted)
-- Watercolour or stock-style illustrations
-- Decorative or cute microcopy
-- Fake statistics, streaks, badges, or achievements
+- Cover story text with any popover, overlay or card
+- Interrupt reading: no automatic check-ins or quizzes; quizzes are opt-in only
+- Show asking for help as a score, count or chart, or record it
+- Use coral/clay anywhere but markers, or mustard anywhere but sentence selection
+- Turn motion on by default, add looping animation, or animate outside `--motion-duration`
+- Use emoji, gradients, glow or blur
+- Use grey placeholders, stock imagery or childish illustration
+- Invent statistics, streaks, badges or achievements; label any sample data as an example
+- Show controls with nothing behind them (search, accounts, "View all")
+- Repeat the same white card for every section
 
 ## Accessibility
 
 - Every interactive element is keyboard-accessible with a visible focus ring
 - No information is conveyed by colour alone
 - Comfortable text spacing; respect browser zoom (use rem, never fixed px for reading text)
-- `prefers-reduced-motion` is honoured
+- Motion is off by default; when turned on, `prefers-reduced-motion` still turns it off
 - No flashing and no unnecessary animation
 - Quizzes are never forced
 - AA contrast for all text (`--ink-soft` is the lightest colour allowed for readable text)

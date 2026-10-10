@@ -1,17 +1,26 @@
 import type { ReactNode } from 'react'
 
 interface PageHeaderProps {
+  /** Plain title for the document title and the accessible heading. */
   title: string
+  eyebrow?: string
+  /** Optional styled version of the title, e.g. with an italic word. */
+  display?: ReactNode
   children?: ReactNode
 }
 
-export function PageHeader({ title, children }: PageHeaderProps) {
+export function PageHeader({ title, eyebrow, display, children }: PageHeaderProps) {
   return (
-    <header className="mb-10 max-w-measure">
+    <header className="rise mb-12 max-w-3xl">
       <title>{`${title} — ReadingBridge`}</title>
-      <h1 className="font-display text-[2.75rem] font-normal leading-[1.1] text-ink">{title}</h1>
+      {eyebrow && <p className="label-caps m-0 mb-4 text-accent">{eyebrow}</p>}
+      <h1 className="font-display text-[3rem] font-normal leading-[1.02] text-midnight md:text-[4.25rem]">
+        {display ?? title}
+      </h1>
       {children && (
-        <div className="mt-4 text-[1.0625rem] leading-relaxed text-ink-soft">{children}</div>
+        <div className="mt-5 max-w-xl text-[1.125rem] leading-relaxed text-ink-soft">
+          {children}
+        </div>
       )}
     </header>
   )

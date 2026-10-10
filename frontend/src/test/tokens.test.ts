@@ -10,7 +10,7 @@ describe('design tokens', () => {
     }
   })
 
-  it('uses clay only for markers', () => {
+  it('uses the marker colour only for markers', () => {
     const sources = import.meta.glob('../**/*.tsx', {
       query: '?raw',
       import: 'default',
@@ -24,7 +24,7 @@ describe('design tokens', () => {
       ) {
         continue
       }
-      expect(source as string, file).not.toMatch(/\b(?:bg|text|border|decoration)-clay\b/)
+      expect(source as string, file).not.toMatch(/\b(?:bg|text|border|decoration)-marker\b/)
     }
   })
 })

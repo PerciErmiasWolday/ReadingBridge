@@ -12,14 +12,14 @@ import tokensCss from '../styles/tokens.css?raw'
  * jsdom only emulates the :focus-visible heuristic, and its result drifts
  * across several Tab presses, so the injected copy uses :focus instead. The selector is asserted
  * separately; this test checks keyboard reachability and the computed ring.
- * var(--sage) is resolved from tokens.css because jsdom ignores custom props.
+ * var(--accent) is resolved from tokens.css because jsdom ignores custom props.
  */
-const sage = /--sage:\s*(#[0-9a-f]{6});/i.exec(tokensCss)?.[1] ?? ''
+const accent = /--accent:\s*(#[0-9a-f]{6});/i.exec(tokensCss)?.[1] ?? ''
 const focusRule = /:focus-visible\s*\{[^}]*\}/.exec(indexCss)?.[0] ?? ''
 
 beforeAll(() => {
   const style = document.createElement('style')
-  style.textContent = focusRule.replace(':focus-visible', ':focus').replace('var(--sage)', sage)
+  style.textContent = focusRule.replace(':focus-visible', ':focus').replace('var(--accent)', accent)
   document.head.appendChild(style)
 })
 
@@ -27,16 +27,16 @@ function expectFocusRing(element: Element) {
   // jsdom caches computed styles and does not invalidate them on focus change.
   document.body.dataset.styleBust = String(Math.random())
   const style = getComputedStyle(element)
-  expect(style.outline.toLowerCase()).toBe(`2px solid ${sage.toLowerCase()}`)
+  expect(style.outline.toLowerCase()).toBe(`2px solid ${accent.toLowerCase()}`)
   expect(style.outlineOffset).toBe('2px')
 }
 
 describe('focus ring', () => {
-  it('is defined globally on :focus-visible as a 2px sage outline with a 2px offset', () => {
+  it('is defined globally on :focus-visible as a 2px accent outline with a 2px offset', () => {
     expect(focusRule.startsWith(':focus-visible')).toBe(true)
-    expect(focusRule).toContain('outline: 2px solid var(--sage)')
+    expect(focusRule).toContain('outline: 2px solid var(--accent)')
     expect(focusRule).toContain('outline-offset: 2px')
-    expect(sage).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(accent).toMatch(/^#[0-9a-f]{6}$/i)
   })
 
   it('is visible when a navigation link receives keyboard focus', async () => {

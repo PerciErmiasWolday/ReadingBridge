@@ -47,16 +47,18 @@ describe('reader', () => {
 
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     await user.click(screen.getByRole('button', { name: 'Finish' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'Library' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'A new story is waiting for you.' }),
+    ).toBeInTheDocument()
   })
 
-  it('selects a sentence and offers "Explain this"', async () => {
+  it('selects a sentence and offers "Help me with this"', async () => {
     const user = userEvent.setup()
     renderAt('/read/new-student')
     const sentence = screen.getByRole('button', { name: 'Select sentence 2' })
     await user.click(sentence)
     expect(sentence).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Explain this' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Help me with this' })).toBeInTheDocument()
   })
 
   it('opens the explanation from a marker, after the paragraph', async () => {
@@ -80,17 +82,26 @@ describe('reader', () => {
   it('says honestly when the story does not tell us', async () => {
     vi.mocked(explain).mockResolvedValue({ ...answer, not_in_text: true, clue_quote: '' })
     await openHeartMarker()
-    expect(
-      await screen.findByRole('heading', { name: "The story doesn't tell us this." }),
-    ).toBeInTheDocument()
-    expect(screen.queryByText('Clue')).not.toBeInTheDocument()
+    expect(await screen.findByText("The story doesn't tell us this.")).toBeInTheDocument()
+    expect(screen.queryByText("What's the clue?")).not.toBeInTheDocument()
   })
 
   it('closes with Escape and returns focus to the marker', async () => {
     const { user, marker } = await openHeartMarker()
-    expect(await screen.findByRole('heading', { name: 'The story says' })).toHaveFocus()
+    expect(await screen.findByRole('heading', { name: 'Help me with this' })).toHaveFocus()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('complementary', { name: 'Explanation' })).not.toBeInTheDocument()
     expect(marker).toHaveFocus()
+  })
+
+  it('opens the explanation when the pointer rests on a marker, without moving focus', async () => {
+    const user = userEvent.setup()
+    renderAt('/read/new-student')
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+    const continueButton = screen.getByRole('button', { name: 'Continue' })
+    await user.hover(screen.getAllByRole('button', { name: 'Explain this sentence' })[0])
+    expect(await screen.findByText(answer.meaning)).toBeInTheDocument()
+    expect(explain).toHaveBeenCalledWith(newStudent, 4, 'normal')
+    expect(continueButton).toHaveFocus()
   })
 })

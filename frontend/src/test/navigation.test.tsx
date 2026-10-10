@@ -15,14 +15,16 @@ describe('navigation', () => {
 
   it('redirects / to the library', () => {
     renderAt('/')
-    expect(screen.getByRole('heading', { level: 1, name: 'Library' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'A new story is waiting for you.' }),
+    ).toBeInTheDocument()
   })
 
   it.each([
-    ['/library', 'Library'],
-    ['/my-reading', 'My Reading'],
-    ['/progress', 'Progress'],
-    ['/settings', 'Settings'],
+    ['/library', 'A new story is waiting for you.'],
+    ['/my-reading', 'Your shelf'],
+    ['/progress', 'Your reading journey'],
+    ['/settings', 'Make reading yours.'],
   ])('routes %s to the %s page', (path, title) => {
     renderAt(path)
     expect(screen.getByRole('heading', { level: 1, name: title })).toBeInTheDocument()
@@ -35,7 +37,9 @@ describe('navigation', () => {
 
     await user.click(within(nav).getByRole('link', { name: 'Progress' }))
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Progress' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Your reading journey' }),
+    ).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Progress' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -54,22 +58,12 @@ describe('navigation', () => {
   })
 })
 
-describe('reader layout', () => {
-  it('hides the main navigation on /read/:storyId', () => {
+describe('reader', () => {
+  it('hides the main navigation on /read/:storyId for distraction-free reading', () => {
     renderAt('/read/new-student')
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Library' })).toHaveAttribute('href', '/library')
     expect(screen.getByRole('heading', { level: 1, name: 'The New Student' })).toBeInTheDocument()
-  })
-
-  it('shows only a quiet link back to the library', async () => {
-    const user = userEvent.setup()
-    renderAt('/read/new-student')
-    const back = screen.getByRole('link', { name: /Library/ })
-    expect(back).toHaveAttribute('href', '/library')
-
-    await user.click(back)
-
-    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
   })
 
   it('handles a story id that does not exist', () => {
