@@ -7,13 +7,23 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+TITLE = re.compile(r"\b(?:Mr|Mrs|Ms|Dr|Prof|St)\.$")
+
+
 def split_sentences(story: str) -> list[str]:
     story = normalize(story)
     if not story:
         return []
     # A sentence = text up to . ! or ? plus an optional closing quote, then a space or the end.
     parts = re.findall(r'.+?[.!?]"?(?=\s+["A-Z0-9]|\s*$)|.+$', story)
-    return [p.strip() for p in parts if p.strip()]
+    sentences: list[str] = []
+    for part in (p.strip() for p in parts if p.strip()):
+        # Keep going after a title ("Mr.") or while a quotation is still open.
+        if sentences and (TITLE.search(sentences[-1]) or sentences[-1].count('"') % 2):
+            sentences[-1] += " " + part
+        else:
+            sentences.append(part)
+    return sentences
 
 
 def number_sentences(sentences: list[str]) -> str:

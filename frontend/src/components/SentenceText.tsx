@@ -76,7 +76,9 @@ export function SentenceText({
 function underlineQuote(text: string, quote: string | undefined) {
   const evidence = 'underline decoration-accent decoration-2 underline-offset-[0.25em]'
   if (!quote) return text
-  const start = text.toLowerCase().indexOf(quote.toLowerCase())
+  // Like the backend check, ' and " count as the same mark (one character for one, so indexes hold).
+  const plain = (value: string) => value.replace(/[‘’“”']/g, '"').toLowerCase()
+  const start = plain(text).indexOf(plain(quote))
   if (start >= 0) {
     const end = start + quote.length
     return (
@@ -88,6 +90,6 @@ function underlineQuote(text: string, quote: string | undefined) {
     )
   }
   // A quote that spans several sentences: underline each whole sentence inside it.
-  const bare = text.replace(/^[\s."]+|[\s."]+$/g, '').toLowerCase()
-  return quote.toLowerCase().includes(bare) ? <span className={evidence}>{text}</span> : text
+  const bare = plain(text.replace(/^[\s."]+|[\s."]+$/g, ''))
+  return plain(quote).includes(bare) ? <span className={evidence}>{text}</span> : text
 }

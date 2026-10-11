@@ -87,3 +87,32 @@ def test_openai_error_returns_503(monkeypatch):
     r = client.post("/explain", json={"story": STORY, "sentence_id": 3})
     assert r.status_code == 503
     assert r.json() == {"detail": "The explanation service is unavailable."}
+
+
+def test_split_keeps_a_quotation_together():
+    text = 'Leah smiled. "I\'m new here too. Want to sit together at lunch?" Maya nodded.'
+    assert split_sentences(text) == [
+        "Leah smiled.",
+        '"I\'m new here too. Want to sit together at lunch?"',
+        "Maya nodded.",
+    ]
+
+
+def test_split_does_not_break_after_titles():
+    assert split_sentences("Mr. Hall read the message. Then he started the lesson.") == [
+        "Mr. Hall read the message.",
+        "Then he started the lesson.",
+    ]
+    assert split_sentences("Dr. Lee and Mrs. Park arrived.") == ["Dr. Lee and Mrs. Park arrived."]
+
+
+def test_quote_marks_do_not_matter_in_clue_quote(monkeypatch):
+    # v1 fell back here: the model wrote the story's double quotes as single quotes.
+    story = ('His older sister walked beside him. At the door, she patted his shoulder and said, '
+             '"Break a leg." Omar nodded and went inside.')
+    answer = {"type": "idiom", "clue_quote": "she patted his shoulder and said, 'Break a leg.'",
+              "clue": "She said this as he went in.", "meaning": "Break a leg means good luck.",
+              "not_in_text": False}
+    script(monkeypatch, [answer])
+    r = client.post("/explain", json={"story": story, "sentence_id": 1}).json()
+    assert r["checks"] == ["passed"] and r["meaning"] == "Break a leg means good luck."

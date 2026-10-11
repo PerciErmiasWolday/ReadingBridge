@@ -56,10 +56,9 @@ export const newStudent: Story = {
       sentences: [
         { id: 7, text: 'After class, a girl with a kind smile walked up to her.' },
         { id: 8, text: '"Hi, I\'m Leah," she said.' },
-        { id: 9, text: '"I\'m new here too.' },
-        { id: 10, text: 'Want to sit together at lunch?"' },
-        { id: 11, text: 'Maya felt a little more relaxed.' },
-        { id: 12, text: "Maybe this new school wouldn't be so scary after all." },
+        { id: 9, text: '"I\'m new here too. Want to sit together at lunch?"' },
+        { id: 10, text: 'Maya felt a little more relaxed.' },
+        { id: 11, text: "Maybe this new school wouldn't be so scary after all." },
       ],
       quiz: {
         question: 'Why did Maya feel a little more relaxed?',
@@ -69,7 +68,7 @@ export const newStudent: Story = {
           'Leah was friendly and asked her to sit together at lunch.',
         ],
         answerIndex: 2,
-        evidenceSentenceId: 10,
+        evidenceSentenceId: 9,
         why: 'Leah was new too and asked Maya to lunch. Having someone to sit with made the school feel less scary.',
       },
     },

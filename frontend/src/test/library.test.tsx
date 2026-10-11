@@ -176,6 +176,6 @@ describe('bring your own reading', () => {
     await user.click(within(shelf).getByRole('button', { name: 'Remove First notes' }))
     await user.click(within(shelf).getByRole('button', { name: 'Yes' }))
     expect(within(shelf).queryByRole('heading', { name: 'First notes' })).not.toBeInTheDocument()
-    expect(JSON.parse(localStorage.getItem('readingbridge.own') ?? '[]')).toHaveLength(1)
+    expect(JSON.parse(localStorage.getItem('readingbridge.own.v2') ?? '[]')).toHaveLength(1)
   })
 })

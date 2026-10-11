@@ -86,7 +86,7 @@ describe('quiz', () => {
 
   it('does not offer a quiz for the reader’s own readings', () => {
     localStorage.setItem(
-      'readingbridge.own',
+      'readingbridge.own.v2',
       JSON.stringify([
         {
           id: 'own-test',

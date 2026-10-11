@@ -26,7 +26,7 @@ The build has 7 phases:
 3. Reading screen — done (followed by the full redesign described below)
 4. Optional quiz — done (never forced, never automatic, never scored or stored)
 5. Bring your own reading: paste or upload (.txt, text-based .pdf), sections and AI markers — done
-6. Testing and evaluation (uses `backend/logs/explain.jsonl`)
+6. Testing and evaluation — 6a eval set + v1 baseline, 6b splitter fix + prompt v3 (`docs/evaluation.md`, `docs/test-results.md`)
 7. Case study deliverables: README, notes, video
 
 ## Repository
@@ -208,7 +208,7 @@ Own readings live on the shelf. Its first item is a plain "Add your own reading"
 border, plus icon, no art) that opens the paste box and Upload file directly under the shelf.
 Paste and upload share one pipeline (`LibraryPage` → `services/reading.ts`):
 (`POST /upload` →) `POST /prepare` → `saveOwnReading` → `/read/:id`, the normal reading screen.
-Saved readings are kept in localStorage (`readingbridge.own`, newest first, at most 10) with
+Saved readings are kept in localStorage (`readingbridge.own.v2`, newest first, at most 10) with
 unique `own-…` ids and a typographic cover (title, "Your reading", ruled strip). Each has a
 "Remove" link with a "Remove this reading? Yes / Cancel" step; library stories cannot be removed.
 They work with Continue reading, bookmarks, My Reading and the reading log. While working, show only plain status text ("Reading your file…",
@@ -234,4 +234,17 @@ reading footer; Continue never requires it. Radio options plus "I'm not sure" an
 "Not quite. Look at this sentence:" or "Here's a clue:", then the evidence sentence and `why`; the
 evidence is underlined in the story while feedback shows. Then "Continue reading" and "Close".
 Answers stay in component state only: never scored, logged or written to storage (a test checks).
+
+## Evaluation (Phase 6)
+
+- `split_sentences` keeps titles (Mr, Mrs, Ms, Dr, Prof, St) and open quotations together. Any
+  splitter change shifts sentence ids: regenerate library data, quiz `evidenceSentenceId`s and eval
+  cases **by sentence text**, and bump the own-readings storage key (now `readingbridge.own.v2`;
+  readings saved under an older key are dropped because their ids no longer match).
+- The grounding quote check treats `'` and `"` (and curly forms) as the same mark; nothing else is
+  loosened. The frontend evidence underline uses the same rule.
+- Prompts are changed only through the eval: `cd backend && python eval/run_eval.py --label <v>
+  --split dev`. Iterate on **dev** only; run **holdout** once with the final prompt and never change
+  prompts after seeing it. Prompts must not mention eval stories, names or sentences. Keep every
+  results file in `backend/eval/results/`. The current prompt is v3.
 

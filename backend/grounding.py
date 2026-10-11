@@ -27,7 +27,8 @@ def check(result: dict, story: str, simple: bool = False) -> str | None:
         return "type is not one of feeling/who/why/idiom/other"
 
     quote = normalize(result["clue_quote"]).strip(' ."')
-    if quote.lower() not in normalize(story).lower():
+    # ' and " count as the same mark (normalize already straightens curly quotes).
+    if quote.replace("'", '"').lower() not in normalize(story).replace("'", '"').lower():
         return f'clue_quote "{quote}" is not in the story'
     if len(quote.split()) > 20:
         return "clue_quote is longer than 20 words"

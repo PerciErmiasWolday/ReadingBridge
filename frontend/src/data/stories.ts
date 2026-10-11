@@ -28,7 +28,8 @@ export function storySkills(story: Story): MarkerType[] {
   return (Object.keys(skills) as MarkerType[]).filter((type) => found.has(type))
 }
 
-const OWN_KEY = 'readingbridge.own'
+// v2: sentence ids changed with the Phase 6b splitter fix, so readings saved earlier are dropped.
+const OWN_KEY = 'readingbridge.own.v2'
 const LAST_READ_KEY = 'readingbridge.lastRead'
 const MAX_OWN = 10
 
