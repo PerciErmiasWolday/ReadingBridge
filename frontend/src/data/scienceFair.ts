@@ -66,10 +66,14 @@ export const scienceFair: Story = {
       ],
       quiz: {
         question: 'Why did the volcano finally foam over the sides?',
-        options: ['The judge touched it.', 'Omar shook the table.', 'Omar added the baking soda.'],
+        options: [
+          'The judge stirred the mixture.',
+          'Omar shook the table hard.',
+          'Omar added the baking soda.',
+        ],
         answerIndex: 2,
-        evidenceSentenceId: 10,
-        why: '“It” is the baking soda from the sentence before. The volcano foamed only after he added it.',
+        evidenceSentenceId: 9,
+        why: 'The baking soda was still in his bag, not in the volcano. The volcano foamed only after he added it.',
       },
     },
   ],

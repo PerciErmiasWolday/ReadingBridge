@@ -65,7 +65,7 @@ export const newStudent: Story = {
         options: [
           'She won a prize in class.',
           'Her old friends came to visit.',
-          'Leah was friendly and asked her to sit together at lunch.',
+          'Leah asked her to sit at lunch.',
         ],
         answerIndex: 2,
         evidenceSentenceId: 9,

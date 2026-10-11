@@ -48,11 +48,7 @@ export const twoFriends: Story = {
       ],
       quiz: {
         question: 'Why did the frisbee stay on the grass for the rest of the afternoon?',
-        options: [
-          'The frisbee was broken.',
-          'It started to rain.',
-          'They stopped playing and sat by the pond.',
-        ],
+        options: ['The frisbee was broken.', 'It started to rain.', 'They sat by the pond.'],
         answerIndex: 2,
         evidenceSentenceId: 7,
         why: 'They sat by the pond and shared the oranges. They were not playing any more, so the frisbee stayed where it was.',
