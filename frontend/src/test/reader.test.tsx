@@ -14,7 +14,7 @@ const answer: Explanation = {
   clue: 'She looked at her shoes instead of the class.',
   meaning: 'Maya probably feels nervous.',
   not_in_text: false,
-  sentence_id: 4,
+  sentence_id: 8,
   checks: ['passed'],
 }
 
@@ -66,10 +66,10 @@ describe('reader', () => {
     const card = await screen.findByRole('complementary', { name: 'Explanation' })
     expect(card).toHaveTextContent(answer.meaning)
     expect(card).toHaveTextContent(`Clue: “${answer.clue_quote}”`)
-    expect(explain).toHaveBeenCalledWith(newStudent, 4, 'normal')
+    expect(explain).toHaveBeenCalledWith(newStudent, 8, 'normal')
 
     const before = card.previousElementSibling as HTMLElement
-    const sentence = screen.getByRole('button', { name: 'Select sentence 5' })
+    const sentence = screen.getByRole('button', { name: 'Select sentence 9' })
     expect(before.tagName).toBe('P')
     expect(before.lastElementChild).toContainElement(sentence)
     expect(sentence).toHaveAttribute('aria-pressed', 'true')
@@ -79,7 +79,7 @@ describe('reader', () => {
   it('asks for a simpler explanation', async () => {
     const { user } = await openHeartMarker()
     await user.click(await screen.findByRole('button', { name: 'Say it more simply' }))
-    expect(explain).toHaveBeenLastCalledWith(newStudent, 4, 'simple')
+    expect(explain).toHaveBeenLastCalledWith(newStudent, 8, 'simple')
   })
 
   it('says honestly when the story does not tell us', async () => {
@@ -106,7 +106,7 @@ describe('reader', () => {
 
     await user.hover(marker)
     await new Promise((resolve) => setTimeout(resolve, 600))
-    expect(screen.getByRole('button', { name: 'Select sentence 5' })).toHaveClass('underline')
+    expect(screen.getByRole('button', { name: 'Select sentence 9' })).toHaveClass('underline')
     expect(screen.queryByRole('complementary', { name: 'Explanation' })).not.toBeInTheDocument()
     expect(explain).not.toHaveBeenCalled()
 

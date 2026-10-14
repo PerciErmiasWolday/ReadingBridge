@@ -68,7 +68,7 @@ describe('quiz', () => {
     expect(within(quiz).getByText(`“${evidence}”`)).toBeInTheDocument()
     expect(within(quiz).getByText(new RegExp(why))).toBeInTheDocument()
 
-    const sentence = screen.getByRole('button', { name: 'Select sentence 7' })
+    const sentence = screen.getByRole('button', { name: 'Select sentence 11' })
     expect(within(sentence).getByText(evidence.replace(/\.$/, ''))).toHaveClass('underline')
   })
 
