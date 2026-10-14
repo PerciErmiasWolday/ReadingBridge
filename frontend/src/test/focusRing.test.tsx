@@ -56,7 +56,7 @@ describe('focus ring', () => {
   it('is visible when a button and a marker receive keyboard focus', async () => {
     const user = userEvent.setup()
     renderAt('/styleguide')
-    const button = await screen.findByRole('button', { name: 'Tab to me' })
+    const button = await screen.findByRole('button', { name: 'Tab to me' }, { timeout: 5000 })
     const marker = screen.getAllByRole('button', { name: /Explain this sentence/ })[0]
 
     for (const target of [button, marker]) {

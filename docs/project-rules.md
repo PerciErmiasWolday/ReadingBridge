@@ -52,7 +52,7 @@ Commands (run in `/frontend`): `npm run dev`, `npm run build`, `npm run lint`, `
 Source layout: `src/components`, `src/pages`, `src/data`, `src/types`, `src/services`,
 `src/styles`, `src/test`. Keep components small and understandable.
 
-Routes: `/library`, `/read/:storyId`, `/my-reading`, `/progress`, `/settings`, and `/styleguide`
+Routes: `/library`, `/add-reading`, `/read/:storyId`, `/my-reading`, `/progress`, `/settings`, and `/styleguide`
 (development only; excluded from production builds). `/` redirects to `/library`.
 All routes except the reader use `AppShell` (wordmark, horizontal `MainNav`, colophon footer).
 `/read/:storyId` uses `ReaderLayout`: no navigation, only "← Library", a bookmark and an "Aa" link
@@ -70,15 +70,25 @@ should be memorable without being stimulating, and the reading view stays plain.
    by colour bands (`ivory-deep`, one `midnight` band) and hairline rules, not repeated cards.
 2. **Editorial type.** Instrument Serif headlines, often with one italic forest-green word. Small
    tracked uppercase eyebrows (`.label-caps`). Story text is never in the display face.
-3. **Asymmetric composition.** Unequal columns; the shelf is staggered by hand (`shelfOffsets`).
-   Covers rest on the page with a printed-book shadow (`shadow-book`).
+3. **Composition.** Unequal columns in the hero. The shelf is a straight row: at most 4 per row
+   ("Add your own reading" + 3 books on a laptop; 3 / 2 on smaller screens), all tops aligned, books
+   filling the row. Covers rest on the page with a printed-book shadow (`shadow-book`).
 4. **Original art only.** `Cover` draws each story's cover as flat screenprint layers in midnight,
    forest, dusty blue, sand and ivory, with slight misregistration and grain. A new story needs its
    own art in `Cover.tsx`; unknown ids get the typographic "Your reading" cover. `HeroArt` is the
    Library's arch window with a bridge over an open book. No coral or mustard in any art.
-5. **Library above the fold.** The hero is compact (eyebrow, headline, one paragraph, small art; no
-   buttons) so Continue reading and the top of the shelf show on a laptop without scrolling.
-6. **Honest data.** My Reading and Progress show only the reader's own log (`data/readingLog.ts`:
+5. **Library landing** (reference: `docs/design/library-landing.png`). A two-column hero: eyebrow and
+   a very large two-line headline on the left (no paragraph, no buttons); `HeroArt` on the right
+   (arched window with a thick cream frame on a soft arch backdrop, leaf branches either side, an
+   open book at its foot). Continue reading is one raised card overlapping the foot of the picture,
+   with hairline dividers between cover, text, progress and Resume. The card is always shown: with
+   no saved place it says "Start here / Begin with <first unfinished library story>" with an empty
+   progress bar, "Not started · n sections" and "Start reading" (it never claims a saved place). Content width is `92rem`.
+6. **My Reading.** Three full-width shelves stacked in order (01 In progress, 02 Saved for later,
+   03 Finished). Each has a label column on the left (number, name, count, one line) and the books in
+   one straight row on the right, at most 4 per row and the same size on every shelf. An empty shelf
+   is a slim dashed strip aligned with the books, not an empty book-sized box.
+7. **Honest data.** My Reading and Progress show only the reader's own log (`data/readingLog.ts`:
    sections reached, finished stories, bookmarks). Sample data appears only behind "See an example"
    and is labelled wherever it shows. Help requests are not recorded or counted anywhere.
 
@@ -178,7 +188,7 @@ type MarkerType = 'feeling' | 'who' | 'why' | 'idiom' | 'other'
 interface Sentence { id: number; text: string; marker?: { type: MarkerType } }
 interface Quiz     { question: string; options: [string, string, string]; answerIndex: number; evidenceSentenceId: number; why: string }
 interface Section  { id: string; sentences: Sentence[]; quiz?: Quiz }
-interface Story    { id: string; title: string; description: string; category: string; readMinutes: number; sections: Section[] }
+interface Story    { id: string; title: string; description: string; category: string; readMinutes: number; sections: Section[]; cover?: string; coverImage?: string /* own readings only */ }
 
 // Must match the backend /explain response exactly
 interface Explanation {
@@ -205,11 +215,19 @@ There is no frontend mock. Never show `checks` to students.
 ## Bring your own reading (Phase 5)
 
 Own readings live on the shelf. Its first item is a plain "Add your own reading" cover (hairline
-border, plus icon, no art) that opens the paste box and Upload file directly under the shelf.
-Paste and upload share one pipeline (`LibraryPage` → `services/reading.ts`):
-(`POST /upload` →) `POST /prepare` → `saveOwnReading` → `/read/:id`, the normal reading screen.
+border, plus icon, no art) that links to its own page, `/add-reading` (`AddReadingPage`; the Library
+tab stays marked). Paste and upload share one pipeline (`AddReadingPage` → `services/reading.ts`):
+(`POST /upload` →) `POST /prepare` → **name and cover** → `saveOwnReading` → `/read/:id`, the normal
+reading screen. Before saving, the student must type a name (the file name is only a placeholder)
+and choose one of the cover pictures in `data/covers.ts` (`paper`, `leaves`, `night`, `hills`,
+`waves`, `bridge`; drawn in `Cover.tsx`, palette colours only) **or upload their own picture**
+(JPG/PNG/WebP). The picture is shrunk in the browser to 450 × 675 JPEG (~50–90 KB) and stored as
+`coverImage` (a data URL); it is never sent to the backend. On the cover the title sits on a paper
+label across the top. If storage is full, saving shows "There isn't enough space to save this…"
+instead of failing silently. Nothing is saved until a name and a cover are given;
+"Back" returns to the paste box with the text kept.
 Saved readings are kept in localStorage (`readingbridge.own.v2`, newest first, at most 10) with
-unique `own-…` ids and a typographic cover (title, "Your reading", ruled strip). Each has a
+unique `own-…` ids, the chosen `title` and `cover` (readings saved before covers existed use `paper`). Each has a
 "Remove" link with a "Remove this reading? Yes / Cancel" step; library stories cannot be removed.
 They work with Continue reading, bookmarks, My Reading and the reading log. While working, show only plain status text ("Reading your file…",
 "Finding the tricky parts…"); show backend error messages as they are.
@@ -220,6 +238,9 @@ They work with Continue reading, bookmarks, My Reading and the reading log. Whil
   `MARKERS_SYSTEM` and are checked in code: real ids, known types, one per sentence, at most
   `max(1, sentences // 3)`. If the model fails, the story comes back without markers.
 - PDF extraction loses blank lines, so a PDF usually becomes one section.
+- Short paragraphs are joined into pages of at least 5 sentences (`toPages` in `data/stories.ts`,
+  applied when own readings are loaded); a short last page joins the one before. Sentence ids never
+  change. Paragraph breaks inside a joined page are not shown.
 - Own readings are never added to the built-in library or to the Progress page.
 
 ## Optional quiz (Phase 4)

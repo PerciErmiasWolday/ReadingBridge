@@ -1,4 +1,4 @@
-import type { MarkerType, Story } from '../types'
+import type { MarkerType, Section, Story } from '../types'
 import { newStudent } from './newStudent'
 import { scienceFair } from './scienceFair'
 import { twoFriends } from './twoFriends'
@@ -41,24 +41,49 @@ export interface LastRead {
 /** The reader's own pasted or uploaded readings, newest first. Stored only in this browser. */
 export function getOwnReadings(): Story[] {
   try {
-    return JSON.parse(localStorage.getItem(OWN_KEY) ?? '[]') as Story[]
+    return (JSON.parse(localStorage.getItem(OWN_KEY) ?? '[]') as Story[]).map(toPages)
   } catch {
     return []
   }
 }
 
-function writeOwnReadings(readings: Story[]): void {
+const MIN_PAGE = 5
+
+/**
+ * The backend makes one section per paragraph, so short paragraphs give pages of one or two
+ * sentences. Join them until each page has at least five sentences, and fold a short last page
+ * into the one before. Sentence ids do not change, so they still match /explain.
+ */
+export function toPages(story: Story): Story {
+  const pages: Section[] = []
+  for (const section of story.sections) {
+    const last = pages[pages.length - 1]
+    if (last && last.sentences.length < MIN_PAGE) last.sentences.push(...section.sentences)
+    else pages.push({ ...section, sentences: [...section.sentences] })
+  }
+  const end = pages[pages.length - 1]
+  if (pages.length > 1 && end.sentences.length < 3) {
+    pages.pop()
+    pages[pages.length - 1].sentences.push(...end.sentences)
+  }
+  return { ...story, sections: pages.map((page, index) => ({ ...page, id: `s${index + 1}` })) }
+}
+
+function writeOwnReadings(readings: Story[]): boolean {
   try {
     localStorage.setItem(OWN_KEY, JSON.stringify(readings))
+    return true
   } catch {
-    // Storage unavailable: the reading opens now but is not kept.
+    return false // storage full or unavailable
   }
 }
 
 /** Saves a prepared reading under a unique id (keeping the newest 10) and returns it. */
 export function saveOwnReading(story: Story): Story {
   const saved = { ...story, id: `own-${crypto.randomUUID().slice(0, 8)}` }
-  writeOwnReadings([saved, ...getOwnReadings()].slice(0, MAX_OWN))
+  if (!writeOwnReadings([saved, ...getOwnReadings()].slice(0, MAX_OWN))) {
+    throw new Error('There isn’t enough space to save this. Remove an older reading and try again.')
+  }
   return saved
 }
 

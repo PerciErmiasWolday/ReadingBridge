@@ -46,16 +46,18 @@ export function MyReadingPage() {
       >
         Stories you have opened, saved and finished. All of it stays in this browser.
       </PageHeader>
-      <div className="mb-14">
+      <div className="mb-10">
         <ExampleToggle on={example} onChange={setExample} />
       </div>
 
       {entries.length === 0 && saved.length === 0 ? (
         <EmptyShelf />
       ) : (
-        <div className="grid gap-x-10 md:grid-cols-3">
+        <div className="border-b border-line">
           <ShelfRow
+            number="01"
             title="In progress"
+            note="Your place is saved in each one."
             empty="Nothing in progress. Every story you start waits here."
           >
             {inProgress.map(({ story, entry }) => (
@@ -65,16 +67,25 @@ export function MyReadingPage() {
             ))}
           </ShelfRow>
           <ShelfRow
+            number="02"
             title="Saved for later"
+            note="Stories you bookmarked."
             empty="Nothing saved yet. Use the bookmark on any story."
           >
             {saved.map((story) => (
               <Book key={story.id} story={story}>
-                <p className="m-0 text-[0.9375rem] text-ink-soft">{story.description}</p>
+                <p className="m-0 line-clamp-2 text-[0.9375rem] text-ink-soft">
+                  {story.description || 'Your reading'}
+                </p>
               </Book>
             ))}
           </ShelfRow>
-          <ShelfRow title="Finished" empty="No finished stories yet.">
+          <ShelfRow
+            number="03"
+            title="Finished"
+            note="Read to the end."
+            empty="No finished stories yet."
+          >
             {finished.map(({ story, entry }) => (
               <Book key={story.id} story={story}>
                 <p className="m-0 text-[0.9375rem] text-ink-soft">
@@ -89,28 +100,48 @@ export function MyReadingPage() {
   )
 }
 
+/**
+ * One full-width shelf: a numbered label on the left, the books in one straight row on the right.
+ * Every shelf uses the same columns, so books line up and are the same size from shelf to shelf.
+ */
 function ShelfRow({
+  number,
   title,
+  note,
   empty,
   children,
 }: {
+  number: string
   title: string
+  note: string
   empty: string
   children: ReactNode[]
 }) {
+  const count = children.length
   return (
-    <Reveal className="mb-14">
-      <section>
-        <h2 className="m-0 mb-6 border-t-[2px] border-midnight pt-4 font-display text-[2rem] font-normal text-midnight">
-          {title} <span className="text-[1.5rem] text-ink-soft">({children.length})</span>
-        </h2>
-        {children.length ? (
-          <ul className="m-0 grid list-none grid-cols-2 gap-x-6 gap-y-10 border-b-[6px] border-ivory-deep p-0 pb-8">
-            {children}
-          </ul>
-        ) : (
-          <p className="m-0 border-b-[6px] border-ivory-deep pb-6 text-ink-soft">{empty}</p>
-        )}
+    <Reveal>
+      <section className="grid gap-6 border-t border-line py-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
+        <header>
+          <p aria-hidden="true" className="m-0 font-display text-[2rem] leading-none text-accent">
+            {number}
+          </p>
+          <h2 className="m-0 mt-3 font-display text-[2rem] font-normal leading-tight text-midnight">
+            {title}
+          </h2>
+          <p className="label-caps m-0 mt-3 text-ink-soft">
+            {count} {count === 1 ? 'story' : 'stories'}
+          </p>
+          <p className="m-0 mt-1 text-[0.9375rem] text-ink-soft">{note}</p>
+        </header>
+        <ul className="m-0 grid list-none grid-cols-2 items-start gap-x-6 gap-y-10 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-x-8">
+          {count ? (
+            children
+          ) : (
+            <li className="col-span-full flex min-h-[5.5rem] items-center border border-dashed border-line-strong px-6 py-5 text-[0.9375rem] text-ink-soft">
+              {empty}
+            </li>
+          )}
+        </ul>
       </section>
     </Reveal>
   )
@@ -127,7 +158,7 @@ function Book({ story, children }: { story: Story; children: ReactNode }) {
         <div className="shadow-book transition duration-500 group-hover:-translate-y-2 group-hover:-rotate-1">
           <Cover story={story} />
         </div>
-        <h3 className="m-0 mt-4 font-display text-[1.375rem] font-normal leading-tight text-midnight">
+        <h3 className="m-0 mt-4 line-clamp-2 font-display text-[1.375rem] font-normal leading-tight text-midnight">
           {story.title}
         </h3>
       </Link>

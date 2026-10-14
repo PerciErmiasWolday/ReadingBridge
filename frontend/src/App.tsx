@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { ReaderLayout } from './components/ReaderLayout'
+import { AddReadingPage } from './pages/AddReadingPage'
 import { LibraryPage } from './pages/LibraryPage'
 import { MyReadingPage } from './pages/MyReadingPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -18,6 +19,7 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/library" replace />} />
         <Route path="library" element={<LibraryPage />} />
+        <Route path="add-reading" element={<AddReadingPage />} />
         <Route path="my-reading" element={<MyReadingPage />} />
         <Route path="progress" element={<ProgressPage />} />
         <Route path="settings" element={<SettingsPage />} />

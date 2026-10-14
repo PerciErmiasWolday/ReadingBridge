@@ -28,6 +28,10 @@ export interface Story {
   category: string
   readMinutes: number
   sections: Section[]
+  /** Own readings only: the cover picture the student chose (see data/covers.ts). */
+  cover?: string
+  /** Own readings only: the student's own picture, already shrunk to cover size (a data URL). */
+  coverImage?: string
 }
 
 /** Must match the backend /explain response exactly. */

@@ -1,37 +1,40 @@
-import { Info, Plus, Upload } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Plus } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Arrow } from '../components/Arrow'
 import { BookmarkButton } from '../components/BookmarkButton'
 import { Button } from '../components/Button'
-import { buttonClass } from '../components/buttonClass'
 import { Cover } from '../components/Cover'
 import { HeroArt } from '../components/HeroArt'
 import { ProgressBar } from '../components/ProgressBar'
 import { Reveal } from '../components/Reveal'
+import { getLog } from '../data/readingLog'
 import {
   getLastRead,
   getOwnReadings,
   getStory,
   removeOwnReading,
-  saveOwnReading,
   skills,
   stories,
   storySkills,
 } from '../data/stories'
-import { prepare, uploadFile } from '../services/reading'
 import type { Story } from '../types'
 
 export function LibraryPage() {
   const lastRead = getLastRead()
   const lastStory = lastRead ? getStory(lastRead.storyId) : undefined
+  // With nothing to continue, the same card suggests the first library story not yet finished.
+  const log = getLog()
+  const firstStory = stories.find((story) => !log[story.id]?.finished) ?? stories[0]
 
   return (
     <>
       <title>Library — ReadingBridge</title>
       <Hero />
-      {lastRead && lastStory && (
-        <ContinueReading story={lastStory} sectionIndex={lastRead.sectionIndex} />
+      {lastRead && lastStory ? (
+        <ContinueReading story={lastStory} sectionIndex={lastRead.sectionIndex} resume />
+      ) : (
+        <ContinueReading story={firstStory} sectionIndex={0} resume={false} />
       )}
       <Shelf />
       <Themes />
@@ -50,59 +53,76 @@ function Eyebrow({ children }: { children: string }) {
 
 function Hero() {
   return (
-    <section className="grid items-center gap-8 pb-8 md:grid-cols-[minmax(0,1fr)_11rem] md:gap-12 lg:grid-cols-[minmax(0,1fr)_12.5rem]">
-      <div>
-        <p className="label-caps rise m-0 mb-4 text-accent">Stories with quiet help</p>
+    <section className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <div className="lg:pb-16">
+        <p className="label-caps rise m-0 mb-6 text-[0.8125rem] text-accent">
+          Stories with quiet help
+        </p>
         <h1
-          className="rise m-0 font-display text-[3rem] font-normal leading-[1] text-midnight sm:text-[3.75rem] lg:text-[4.5rem]"
+          className="rise m-0 font-display text-[3.5rem] font-normal leading-[0.98] text-midnight sm:text-[4.75rem] lg:text-[5.75rem] xl:text-[7rem]"
           style={{ animationDelay: 'calc(var(--motion-duration) * 1)' }}
         >
-          A new story is <span className="italic text-accent">waiting</span> for you.
+          A new story is{' '}
+          <span className="block lg:whitespace-nowrap">
+            <span className="italic text-accent">waiting</span> for you.
+          </span>
         </h1>
-        <p
-          className="rise mb-0 mt-5 max-w-[44rem] text-[1.125rem] leading-relaxed text-ink-soft"
-          style={{ animationDelay: 'calc(var(--motion-duration) * 2)' }}
-        >
-          Read at your own pace. When a story leaves something unsaid — a feeling, a figure of
-          speech, who “she” is — ask, and it shows you the clue in the text.
-        </p>
       </div>
-      <div className="relative mx-auto w-40 md:w-full">
-        <div aria-hidden="true" className="absolute -right-4 top-8 h-[78%] w-[82%] bg-ivory-deep" />
-        <HeroArt className="relative" />
+      {/* Sized to the window height too, so Continue reading always fits on the first screen. */}
+      <div
+        className="mx-auto w-full"
+        style={{ maxWidth: 'min(48rem, calc((100svh - 17rem) * 1.25))' }}
+      >
+        <HeroArt />
       </div>
     </section>
   )
 }
 
-function ContinueReading({ story, sectionIndex }: { story: Story; sectionIndex: number }) {
+/** The card under the hero: continue where you left off, or (with no saved place) start a story. */
+function ContinueReading({
+  story,
+  sectionIndex,
+  resume,
+}: {
+  story: Story
+  sectionIndex: number
+  resume: boolean
+}) {
   const navigate = useNavigate()
   const count = story.sections.length
   const index = Math.min(sectionIndex, count - 1)
+  // A raised card that overlaps the foot of the hero picture, with hairline dividers between parts.
+  const part = 'lg:flex lg:flex-col lg:justify-center lg:self-stretch lg:px-8'
   return (
-    <Reveal className="mb-10">
-      <section className="grid items-center gap-x-8 gap-y-4 bg-ivory-deep px-6 py-5 sm:grid-cols-[4rem_1fr] md:px-8 lg:grid-cols-[4rem_1fr_auto]">
-        <div className="w-16 -rotate-2 shadow-book">
+    <Reveal className="relative z-10 mb-16 lg:-mt-2">
+      <section className="grid items-center gap-x-5 gap-y-4 rounded-lg border border-line bg-paper px-5 py-4 shadow-panel sm:grid-cols-[3.5rem_minmax(0,1fr)] md:px-8 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto] lg:gap-x-0">
+        <div className="w-14 -rotate-3 shadow-book lg:mr-8 lg:w-14">
           <Cover story={story} />
         </div>
-        <div>
-          <p className="label-caps m-0 mb-1 text-accent">Your place is saved</p>
-          <h2 className="m-0 font-display text-[1.75rem] font-normal leading-tight text-midnight md:text-[2rem]">
-            Continue reading <span className="italic">{story.title}</span>
+        <div className={`${part} lg:border-l lg:border-line`}>
+          <p className="label-caps m-0 mb-1 text-accent">
+            {resume ? 'Your place is saved' : 'Start here'}
+          </p>
+          <h2 className="m-0 font-display text-[1.5rem] font-normal leading-tight text-midnight md:text-[1.75rem]">
+            {resume ? 'Continue reading' : 'Begin with'}{' '}
+            <span className="italic">{story.title}</span>
           </h2>
-          <blockquote className="m-0 mt-1 max-w-2xl border-l-[2px] border-accent pl-4 font-story text-[1.0625rem] italic text-ink">
+          <p className="m-0 mt-0.5 truncate font-story text-[1rem] italic text-ink-soft">
             {story.sections[index].sentences[0]?.text}
-          </blockquote>
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 sm:col-start-2 lg:col-start-3">
-          <div className="flex items-center gap-3">
-            <ProgressBar value={(index + 1) / count} className="w-24" />
-            <span className="text-[0.9375rem] text-ink-soft">
-              Section {index + 1} of {count}
-            </span>
-          </div>
+        <div className={`${part} sm:col-start-2 lg:col-start-auto`}>
+          <ProgressBar value={resume ? (index + 1) / count : 0} className="w-40" />
+          <span className="mt-2 text-[0.9375rem] text-ink-soft">
+            {resume ? `Section ${index + 1} of ${count}` : `Not started · ${count} sections`}
+          </span>
+        </div>
+        <div
+          className={`${part} sm:col-start-2 lg:col-start-auto lg:border-l lg:border-line lg:pr-0`}
+        >
           <Button onClick={() => navigate(`/read/${story.id}`)}>
-            Resume
+            {resume ? 'Resume' : 'Start reading'}
             <Arrow />
           </Button>
         </div>
@@ -111,19 +131,14 @@ function ContinueReading({ story, sectionIndex }: { story: Story; sectionIndex: 
   )
 }
 
-// Staggered heights make the shelf feel arranged by hand rather than gridded.
-const shelfOffsets = ['md:mt-0', 'md:mt-16', 'md:mt-6']
-
 const textButton =
   'rounded-sm text-[0.9375rem] font-medium text-accent underline-offset-4 hover:underline'
 
 function Shelf() {
   const [own, setOwn] = useState(getOwnReadings)
-  const [adding, setAdding] = useState(false)
   const [confirming, setConfirming] = useState<string | null>(null)
-  const addButton = useRef<HTMLButtonElement>(null)
+  const addButton = useRef<HTMLAnchorElement>(null)
   // The add item comes first, then the reader's own readings (newest first), then the library.
-  const offset = (index: number) => shelfOffsets[index % shelfOffsets.length]
 
   function remove(id: string) {
     removeOwnReading(id)
@@ -145,23 +160,22 @@ function Shelf() {
           Short, complete stories. Each one has a few quiet markers where the meaning is unsaid.
         </p>
       </Reveal>
-      <ul className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 md:grid-cols-3 md:gap-x-10">
-        <li className={offset(0)}>
-          <button
+      <ul className="m-0 grid list-none grid-cols-2 items-start gap-x-5 gap-y-10 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-x-10">
+        <li>
+          <Link
             ref={addButton}
-            type="button"
-            aria-expanded={adding}
-            aria-controls="add-reading"
-            onClick={() => setAdding(!adding)}
+            to="/add-reading"
             className="flex aspect-[2/3] w-full flex-col items-center justify-center gap-3 border border-line-strong px-4 text-center text-midnight transition hover:border-midnight"
           >
             <Plus size={24} strokeWidth={1.5} aria-hidden="true" />
-            <span className="font-display text-[1.5rem] leading-tight">Add your own reading</span>
-          </button>
-          <p className="m-0 mt-5 text-ink-soft">Paste text, or upload a .txt or .pdf file.</p>
+            <span className="font-display text-[1.25rem] leading-tight">Add your own reading</span>
+          </Link>
+          <p className="m-0 mt-4 text-[0.875rem] text-ink-soft">
+            Paste text, or upload a .txt or .pdf file.
+          </p>
         </li>
-        {own.map((story, index) => (
-          <li key={story.id} className={offset(index + 1)}>
+        {own.map((story) => (
+          <li key={story.id}>
             <Link
               to={`/read/${story.id}`}
               aria-labelledby={`${story.id}-title`}
@@ -173,7 +187,7 @@ function Shelf() {
             </Link>
             <h3
               id={`${story.id}-title`}
-              className="m-0 mt-5 font-display text-[1.75rem] font-normal leading-tight text-midnight"
+              className="m-0 mt-4 font-display text-[1.375rem] font-normal leading-tight text-midnight"
             >
               {story.title}
             </h3>
@@ -201,7 +215,7 @@ function Shelf() {
           </li>
         ))}
         {stories.map((story, index) => (
-          <li key={story.id} className={offset(own.length + index + 1)}>
+          <li key={story.id}>
             <Reveal delay={index}>
               <Link
                 to={`/read/${story.id}`}
@@ -217,11 +231,14 @@ function Shelf() {
                 <div>
                   <h3
                     id={`${story.id}-title`}
-                    className="m-0 font-display text-[1.75rem] font-normal leading-tight text-midnight"
+                    className="m-0 font-display text-[1.375rem] font-normal leading-tight text-midnight"
                   >
                     {story.title}
                   </h3>
-                  <p id={`${story.id}-description`} className="m-0 mt-1 text-ink-soft">
+                  <p
+                    id={`${story.id}-description`}
+                    className="m-0 mt-1 text-[0.875rem] text-ink-soft"
+                  >
                     {story.description}
                   </p>
                 </div>
@@ -236,7 +253,6 @@ function Shelf() {
           </li>
         ))}
       </ul>
-      {adding && <AddReading />}
     </section>
   )
 }
@@ -310,102 +326,5 @@ function Themes() {
         ))}
       </ol>
     </section>
-  )
-}
-
-function AddReading() {
-  const navigate = useNavigate()
-  const [text, setText] = useState('')
-  const [error, setError] = useState('')
-  const [status, setStatus] = useState('')
-  const box = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => box.current?.focus(), [])
-
-  // Paste and upload share one pipeline: (upload →) prepare → save on the shelf → open.
-  async function start(file?: File) {
-    if (!file && !text.trim()) return setError('Paste a story first.')
-    setError('')
-    try {
-      let source = { title: 'Your reading', text }
-      if (file) {
-        setStatus('Reading your file…')
-        source = await uploadFile(file)
-      }
-      setStatus('Finding the tricky parts…')
-      const saved = saveOwnReading(await prepare(source.title, source.text))
-      navigate(`/read/${saved.id}`)
-    } catch (problem) {
-      setError(problem instanceof Error ? problem.message : String(problem))
-      setStatus('')
-    }
-  }
-
-  return (
-    <div
-      id="add-reading"
-      className="fade-in mt-12 max-w-3xl rounded bg-paper p-5 shadow-panel md:p-6"
-    >
-      <div className="flex items-baseline justify-between gap-4">
-        <label htmlFor="own-text" className="label-caps text-ink-soft">
-          Your text
-        </label>
-        <span className="text-[0.8125rem] text-ink-soft">
-          {text.length.toLocaleString('en')} / 5,000
-        </span>
-      </div>
-      <textarea
-        ref={box}
-        id="own-text"
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? 'paste-error' : undefined}
-        rows={7}
-        value={text}
-        placeholder="Paste a passage here…"
-        onChange={(event) => setText(event.target.value)}
-        className="ruled mt-3 block w-full resize-y border-0 bg-transparent p-0 font-reading text-reading text-ink placeholder:text-ink-soft"
-      />
-      {status && (
-        <p role="status" className="mb-0 mt-3 text-[0.9375rem] text-ink-soft">
-          {status}
-        </p>
-      )}
-      {error && (
-        <p
-          id="paste-error"
-          role="alert"
-          className="mb-0 mt-3 flex items-center gap-2 text-[0.9375rem] text-ink-soft"
-        >
-          <Info size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
-          {error}
-        </p>
-      )}
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-5">
-        <Button onClick={() => start()} disabled={Boolean(status)}>
-          Start reading
-          <Arrow />
-        </Button>
-        {/* The file input is the real control; its label looks like a button. */}
-        <label className="relative">
-          <input
-            type="file"
-            accept=".txt,.pdf"
-            disabled={Boolean(status)}
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              event.target.value = ''
-              if (file) start(file)
-            }}
-            className="peer sr-only"
-          />
-          <span
-            className={`${buttonClass('secondary')} cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent`}
-          >
-            <Upload size={17} strokeWidth={1.6} aria-hidden="true" />
-            Upload file
-          </span>
-        </label>
-        <span className="text-[0.875rem] text-ink-soft">.txt or .pdf, up to 2 MB</span>
-      </div>
-    </div>
   )
 }

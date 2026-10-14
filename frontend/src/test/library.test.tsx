@@ -1,6 +1,6 @@
 import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prepare, uploadFile } from '../services/reading'
 import type { Story } from '../types'
 import { renderAt } from './renderAt'
@@ -32,10 +32,12 @@ beforeEach(() => {
   vi.mocked(uploadFile).mockReset()
 })
 
+afterEach(() => vi.restoreAllMocks())
+
 async function openAdd() {
   const user = userEvent.setup()
   renderAt('/library')
-  await user.click(screen.getByRole('button', { name: 'Add your own reading' }))
+  await user.click(screen.getByRole('link', { name: 'Add your own reading' }))
   return user
 }
 
@@ -43,6 +45,14 @@ async function paste(text: string) {
   const user = await openAdd()
   if (text) await user.type(screen.getByRole('textbox', { name: 'Your text' }), text)
   await user.click(screen.getByRole('button', { name: 'Start reading' }))
+}
+
+/** The step after preparing: name the reading, choose a cover, save. */
+async function nameAndSave(name: string, cover = 'Leaves') {
+  const user = userEvent.setup()
+  await user.type(await screen.findByRole('textbox', { name: 'Name' }), name)
+  await user.click(screen.getByRole('radio', { name: cover }))
+  await user.click(screen.getByRole('button', { name: 'Save and start reading' }))
 }
 
 describe('library', () => {
@@ -61,9 +71,13 @@ describe('library', () => {
     }
   })
 
-  it('hides Continue reading when nothing is stored', () => {
+  it('shows a start card in the same place when there is nothing to continue', () => {
     renderAt('/library')
     expect(screen.queryByRole('heading', { name: /Continue reading/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Your place is saved')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Begin with The New Student' })).toBeInTheDocument()
+    expect(screen.getByText('Not started · 3 sections')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start reading' })).toBeInTheDocument()
   })
 
   it('shows Continue reading when a story was opened before', () => {
@@ -79,22 +93,58 @@ describe('library', () => {
 })
 
 describe('bring your own reading', () => {
+  it('opens on its own page from the shelf, with the Library tab still marked', async () => {
+    await openAdd()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Bring your own reading.' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Your text' })).toHaveFocus()
+    expect(screen.queryByRole('heading', { name: 'Stories to begin with' })).not.toBeInTheDocument()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    expect(within(nav).getByRole('link', { name: 'Library' })).toHaveClass('font-medium')
+  })
+
   it('asks for text when empty and does not navigate', async () => {
     await paste('')
     expect(screen.getByRole('alert')).toHaveTextContent('Paste a story first.')
     expect(
-      screen.getByRole('heading', { level: 1, name: 'A new story is waiting for you.' }),
+      screen.getByRole('heading', { level: 1, name: 'Bring your own reading.' }),
     ).toBeInTheDocument()
     expect(prepare).not.toHaveBeenCalled()
   })
 
-  it('prepares pasted text and opens it in the reader', async () => {
+  it('prepares pasted text, then asks for a name and cover before opening it', async () => {
     vi.mocked(prepare).mockResolvedValue({ ...prepared, title: 'Your reading' })
     await paste('She said hello.')
     expect(prepare).toHaveBeenCalledWith('Your reading', 'She said hello.')
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Your reading' }),
+      await screen.findByRole('heading', { name: 'Name your reading and choose a cover' }),
     ).toBeInTheDocument()
+    expect(localStorage.getItem('readingbridge.own.v2')).toBeNull()
+
+    await nameAndSave('Morning notes', 'Night sky')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Morning notes' }),
+    ).toBeInTheDocument()
+    const [saved] = JSON.parse(localStorage.getItem('readingbridge.own.v2') ?? '[]')
+    expect(saved).toMatchObject({ title: 'Morning notes', cover: 'night' })
+  })
+
+  it('requires a name and a cover, and saves nothing until both are given', async () => {
+    const user = userEvent.setup()
+    vi.mocked(prepare).mockResolvedValue(prepared)
+    await paste('She said hello.')
+    const save = await screen.findByRole('button', { name: 'Save and start reading' })
+
+    await user.click(save)
+    expect(screen.getByRole('alert')).toHaveTextContent('Give your reading a name.')
+    await user.type(screen.getByRole('textbox', { name: 'Name' }), 'My notes')
+    await user.click(save)
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose a cover.')
+    expect(localStorage.getItem('readingbridge.own.v2')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Back' }))
+    expect(screen.getByRole('textbox', { name: 'Your text' })).toHaveValue('She said hello.')
   })
 
   it('shows the backend message as it is, e.g. for text that is too long', async () => {
@@ -124,11 +174,18 @@ describe('bring your own reading', () => {
     expect(prepare).toHaveBeenCalledWith('notes', 'She said hello.')
 
     ready.resolve(prepared)
-    expect(await screen.findByRole('heading', { level: 1, name: 'notes' })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: 'Name' })).toHaveAttribute(
+      'placeholder',
+      'notes',
+    )
+    await nameAndSave('Notes from class')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Notes from class' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Explain this sentence' })).toBeInTheDocument()
   })
 
-  it('shows an upload error and stays on the Library', async () => {
+  it('shows an upload error and stays on the add page', async () => {
     vi.mocked(uploadFile).mockRejectedValue(
       new Error(
         'This looks like a scanned page. ReadingBridge can only read PDFs that contain text.',
@@ -142,20 +199,21 @@ describe('bring your own reading', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('This looks like a scanned page.')
     expect(prepare).not.toHaveBeenCalled()
     expect(
-      screen.getByRole('heading', { level: 1, name: 'A new story is waiting for you.' }),
+      screen.getByRole('heading', { level: 1, name: 'Bring your own reading.' }),
     ).toBeInTheDocument()
   })
 
   it('keeps prepared readings on the shelf, newest first, and removes them after a confirm', async () => {
-    vi.mocked(prepare).mockResolvedValue({ ...prepared, title: 'First notes' })
+    vi.mocked(prepare).mockResolvedValue(prepared)
     await paste('She said hello.')
+    await nameAndSave('First notes')
     expect(
       await screen.findByRole('heading', { level: 1, name: 'First notes' }),
     ).toBeInTheDocument()
     cleanup()
 
-    vi.mocked(prepare).mockResolvedValue({ ...prepared, title: 'Second notes' })
     await paste('She said goodbye.')
+    await nameAndSave('Second notes', 'Hills')
     await screen.findByRole('heading', { level: 1, name: 'Second notes' })
     cleanup()
 
@@ -177,5 +235,50 @@ describe('bring your own reading', () => {
     await user.click(within(shelf).getByRole('button', { name: 'Yes' }))
     expect(within(shelf).queryByRole('heading', { name: 'First notes' })).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('readingbridge.own.v2') ?? '[]')).toHaveLength(1)
+  })
+
+  it('can use the student’s own picture as the cover, shrunk before it is saved', async () => {
+    const user = userEvent.setup()
+    // The test browser has no image decoding or canvas drawing, so stand them in.
+    vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({ width: 1200, height: 1600 }))
+    const drawImage = vi.fn()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      drawImage,
+    } as unknown as CanvasRenderingContext2D)
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,AAA')
+
+    vi.mocked(prepare).mockResolvedValue(prepared)
+    await paste('She said hello.')
+    await user.type(await screen.findByRole('textbox', { name: 'Name' }), 'Holiday notes')
+    await user.upload(
+      screen.getByLabelText('Your picture: upload an image'),
+      new File(['photo'], 'beach.png', { type: 'image/png' }),
+    )
+    expect(await screen.findByText('Your picture (change)')).toBeInTheDocument()
+    expect(drawImage).toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Save and start reading' }))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Holiday notes' }),
+    ).toBeInTheDocument()
+    const [saved] = JSON.parse(localStorage.getItem('readingbridge.own.v2') ?? '[]')
+    expect(saved).toMatchObject({
+      title: 'Holiday notes',
+      coverImage: 'data:image/jpeg;base64,AAA',
+    })
+    vi.unstubAllGlobals()
+  })
+
+  it('says so when there is no room to save, instead of losing the reading', async () => {
+    vi.mocked(prepare).mockResolvedValue(prepared)
+    await paste('She said hello.')
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+    await nameAndSave('Too big')
+    expect(screen.getByRole('alert')).toHaveTextContent('There isn’t enough space to save this.')
+    expect(
+      screen.getByRole('heading', { name: 'Name your reading and choose a cover' }),
+    ).toBeInTheDocument()
   })
 })

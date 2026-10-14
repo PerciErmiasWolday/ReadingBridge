@@ -20,7 +20,9 @@ export function MainNav() {
               className={({ isActive }) =>
                 [
                   'group relative inline-block rounded-sm py-1 text-[0.9375rem]',
-                  isActive || (item.to === '/library' && pathname.startsWith('/read/'))
+                  isActive ||
+                  (item.to === '/library' &&
+                    (pathname.startsWith('/read/') || pathname === '/add-reading'))
                     ? 'font-medium text-midnight [&>span]:scale-x-100'
                     : 'text-ink-soft hover:text-midnight',
                 ].join(' ')

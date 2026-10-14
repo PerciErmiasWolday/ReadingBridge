@@ -52,13 +52,50 @@ const covers: Record<string, CoverStyle> = {
   },
 }
 
-/** The reader's own readings get a plain typographic cover: title, "Your reading", ruled strip. */
-const ownCover: CoverStyle = {
-  background: '#FBF8F1',
-  title: [],
-  titleColor: ink.midnight,
-  eyebrowColor: ink.forestDark,
-  art: OwnArt,
+/** Covers a student can choose for their own reading (ids in data/covers.ts). The title is theirs. */
+const ownCovers: Record<string, CoverStyle> = {
+  paper: {
+    background: '#FBF8F1',
+    title: [],
+    titleColor: ink.midnight,
+    eyebrowColor: ink.forestDark,
+    art: PaperArt,
+  },
+  leaves: {
+    background: ink.forest,
+    title: [],
+    titleColor: ink.ivory,
+    eyebrowColor: ink.sand,
+    art: LeavesArt,
+  },
+  night: {
+    background: ink.midnight,
+    title: [],
+    titleColor: ink.ivory,
+    eyebrowColor: ink.mist,
+    art: NightArt,
+  },
+  hills: {
+    background: ink.mist,
+    title: [],
+    titleColor: ink.midnight,
+    eyebrowColor: ink.forestDark,
+    art: HillsArt,
+  },
+  waves: {
+    background: ink.sky,
+    title: [],
+    titleColor: ink.midnight,
+    eyebrowColor: ink.ivory,
+    art: WavesArt,
+  },
+  bridge: {
+    background: ink.sand,
+    title: [],
+    titleColor: ink.midnight,
+    eyebrowColor: ink.forestDark,
+    art: BridgeArt,
+  },
 }
 
 /** Breaks a title into at most three short lines for the cover. */
@@ -76,7 +113,13 @@ function coverLines(title: string): string[] {
 
 export function Cover({ story, className = '' }: { story: Story; className?: string }) {
   const grainId = `grain-${useId().replace(/:/g, '')}`
-  const cover = covers[story.id] ?? { ...ownCover, title: coverLines(story.title) }
+  const title = coverLines(story.title)
+  const photo = story.coverImage
+  const cover =
+    covers[story.id] ??
+    (photo
+      ? { ...ownCovers.paper, title, art: () => <PhotoArt href={photo} lines={title.length} /> }
+      : { ...(ownCovers[story.cover ?? 'paper'] ?? ownCovers.paper), title })
   const eyebrow = covers[story.id] ? `A ${story.category} story` : 'Your reading'
 
   return (
@@ -364,7 +407,7 @@ function TwoFriendsArt() {
   )
 }
 
-function OwnArt() {
+function PaperArt() {
   return (
     <g>
       <rect
@@ -387,6 +430,126 @@ function OwnArt() {
           strokeWidth="1.5"
         />
       ))}
+    </g>
+  )
+}
+
+function LeavesArt() {
+  const leaves: [number, number, number, string, number][] = [
+    [70, 350, 74, ink.forestLight, -35],
+    [210, 320, 80, ink.sand, 28],
+    [140, 410, 82, ink.forestDark, -8],
+    [255, 410, 62, ink.ivory, 40],
+  ]
+  return (
+    <g>
+      {leaves.map(([x, y, r, fill, angle]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${angle} ${x} ${y})`}>
+          <ellipse cx={x} cy={y} rx={r} ry={r * 0.4} fill={fill} />
+          <line
+            x1={x - r * 0.9}
+            x2={x + r * 0.9}
+            y1={y}
+            y2={y}
+            stroke={ink.midnight}
+            strokeWidth="1.5"
+            opacity="0.5"
+          />
+        </g>
+      ))}
+    </g>
+  )
+}
+
+function NightArt() {
+  const stars: [number, number][] = [
+    [40, 230],
+    [120, 250],
+    [270, 220],
+    [180, 230],
+    [90, 300],
+    [250, 320],
+  ]
+  return (
+    <g>
+      <circle cx="214" cy="292" r="40" fill={ink.sky} opacity="0.6" transform="translate(-5 4)" />
+      <circle cx="214" cy="292" r="40" fill={ink.ivory} />
+      {stars.map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" fill={ink.ivory} />
+      ))}
+      <path d="M0 400 Q80 360 160 392 T300 380 L300 450 L0 450 Z" fill={ink.midnightLight} />
+    </g>
+  )
+}
+
+function HillsArt() {
+  return (
+    <g>
+      <circle cx="232" cy="262" r="26" fill={ink.ivory} />
+      <path d="M0 340 Q90 290 180 330 T300 318 L300 450 L0 450 Z" fill={ink.sky} />
+      <path d="M0 380 Q110 340 210 372 T300 368 L300 450 L0 450 Z" fill={ink.forestLight} />
+      <path d="M0 420 Q120 392 220 414 T300 410 L300 450 L0 450 Z" fill={ink.forest} />
+    </g>
+  )
+}
+
+function WavesArt() {
+  return (
+    <g fill="none" strokeLinecap="round">
+      {[300, 330, 360, 390, 420].map((y, index) => (
+        <path
+          key={y}
+          d={`M-10 ${y} Q30 ${y - 16} 70 ${y} T150 ${y} T230 ${y} T310 ${y}`}
+          stroke={index % 2 ? ink.mist : ink.ivory}
+          strokeWidth="5"
+        />
+      ))}
+    </g>
+  )
+}
+
+function BridgeArt() {
+  return (
+    <g>
+      <rect x="0" y="380" width="300" height="70" fill={ink.skyDark} />
+      <g stroke={ink.midnight} fill="none" strokeLinecap="round">
+        <path d="M0 380 Q150 250 300 380" strokeWidth="6" />
+        <path d="M0 380 H300" strokeWidth="4" />
+        {[60, 105, 150, 195, 240].map((x) => (
+          <line
+            key={x}
+            x1={x}
+            x2={x}
+            y1={380 - (1 - ((x - 150) / 150) ** 2) * 65}
+            y2="380"
+            strokeWidth="2"
+          />
+        ))}
+      </g>
+      <path
+        d="M40 410 h50 M150 420 h60 M230 404 h40"
+        stroke={ink.ivory}
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+    </g>
+  )
+}
+
+/** The student's own picture, with a paper label across the top so the title stays readable. */
+function PhotoArt({ href, lines }: { href: string; lines: number }) {
+  return (
+    <g>
+      <image
+        href={href}
+        x="0"
+        y="0"
+        width="300"
+        height="450"
+        preserveAspectRatio="xMidYMid slice"
+      />
+      <rect x="0" y="0" width="300" height={76 + lines * 44} fill="#FBF8F1" opacity="0.94" />
     </g>
   )
 }

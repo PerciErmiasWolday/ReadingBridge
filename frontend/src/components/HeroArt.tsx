@@ -1,32 +1,68 @@
 import { useId, type CSSProperties } from 'react'
 
 /*
- * The Library's hero illustration: an arched window at night, a bridge over
- * still water, and an open book in front of it — reading as a bridge. The
- * layers rise in one after another; reduced motion shows them at once.
+ * The Library's hero illustration: an arched window with a thick cream frame, a bridge over still
+ * water at night, an open book in front, and leaf branches on either side. Drawn in the app's
+ * palette only. With motion on, the layers rise in one after another.
  */
+
+const ink = {
+  midnight: '#18213D',
+  midnightLight: '#26345E',
+  water: '#22305A',
+  forest: '#2E5B47',
+  forestDark: '#22473A',
+  forestLight: '#3F7259',
+  sky: '#7E9AB5',
+  ivory: '#F2E9D8',
+  frame: '#F6EEDF',
+  backdrop: '#EBE2D0',
+  line: '#DCD3C2',
+}
 
 const layer = (delay: number): CSSProperties => ({
   animationDelay: `calc(var(--motion-duration) * ${delay})`,
-  transformBox: 'fill-box',
-  transformOrigin: 'center',
 })
+
+/** A branch: a curved stem with leaves along it, alternating sides. */
+function Branch({ stem, leaves }: { stem: string; leaves: [number, number, number, number][] }) {
+  return (
+    <g>
+      <path d={stem} fill="none" stroke={ink.forestDark} strokeWidth="3" strokeLinecap="round" />
+      {leaves.map(([x, y, size, angle]) => (
+        <g key={`${x}-${y}`} transform={`rotate(${angle} ${x} ${y})`}>
+          <path
+            d={`M${x} ${y} q${size * 0.5} ${-size * 0.45} ${size} 0 q${-size * 0.5} ${size * 0.45} ${-size} 0 Z`}
+            fill={ink.forest}
+          />
+          <path
+            d={`M${x} ${y} h${size * 0.9}`}
+            stroke={ink.forestDark}
+            strokeWidth="1.2"
+            opacity="0.7"
+          />
+        </g>
+      ))}
+    </g>
+  )
+}
 
 export function HeroArt({ className = '' }: { className?: string }) {
   const id = useId().replace(/:/g, '')
-  const arch = `arch-${id}`
+  const windowClip = `window-${id}`
   const grain = `grain-${id}`
+  const hangers = [270, 310, 350, 390, 430, 470, 510]
 
   return (
     <svg
-      viewBox="0 0 520 640"
+      viewBox="0 30 760 610"
       aria-hidden="true"
       focusable="false"
-      className={`group block h-auto w-full ${className}`}
+      className={`block h-auto w-full ${className}`}
     >
       <defs>
-        <clipPath id={arch}>
-          <path d="M60 640 V270 A200 200 0 0 1 460 270 V640 Z" />
+        <clipPath id={windowClip}>
+          <path d="M226 608 V268 A154 154 0 0 1 534 268 V608 Z" />
         </clipPath>
         <filter id={grain} x="0" y="0" width="100%" height="100%">
           <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" />
@@ -34,87 +70,119 @@ export function HeroArt({ className = '' }: { className?: string }) {
         </filter>
       </defs>
 
-      {/* Leaves behind the window, left and right. */}
+      {/* Soft arch-shaped backdrop behind everything. */}
+      <path
+        d="M120 640 V300 A260 260 0 0 1 640 300 V640 Z"
+        fill={ink.backdrop}
+        className="rise"
+        style={layer(0)}
+      />
+
+      {/* Leaf branches either side of the window. */}
       <g className="rise" style={layer(4)}>
-        <path d="M54 360 C10 330 4 270 30 236 C62 270 70 320 54 360 Z" fill="#2E5B47" />
-        <path d="M70 430 C20 430 -6 392 0 360 C40 366 66 396 70 430 Z" fill="#3F7259" />
-        <path d="M466 170 C500 130 520 120 520 120 C516 176 492 204 466 214 Z" fill="#2E5B47" />
-        <path d="M30 236 L54 360" stroke="#18213D" strokeWidth="1.5" />
+        <Branch
+          stem="M214 604 C186 520 158 430 144 310"
+          leaves={[
+            [144, 316, 74, -75],
+            [168, 372, 82, -155],
+            [152, 418, 84, -35],
+            [184, 470, 84, -165],
+            [170, 520, 80, -25],
+            [200, 566, 72, -170],
+          ]}
+        />
+        <Branch
+          stem="M546 604 C584 540 616 470 650 404"
+          leaves={[
+            [648, 410, 74, -60],
+            [618, 446, 80, 25],
+            [612, 498, 82, -45],
+            [578, 532, 76, 30],
+            [566, 580, 68, -35],
+          ]}
+        />
       </g>
 
-      {/* The window frame, then the night inside it. */}
+      {/* The thick cream frame, then the night inside the window. */}
       <path
-        d="M48 640 V270 A212 212 0 0 1 472 270 V640"
-        fill="none"
-        stroke="#18213D"
-        strokeWidth="2"
+        d="M200 612 V262 A180 180 0 0 1 560 262 V612 Z"
+        fill={ink.frame}
+        stroke={ink.line}
+        strokeWidth="1.5"
       />
-      <g clipPath={`url(#${arch})`}>
-        <rect width="520" height="640" fill="#18213D" className="rise" style={layer(0)} />
-        <g fill="#F2E9D8" className="rise" style={layer(1)}>
-          <circle cx="150" cy="150" r="2" />
-          <circle cx="210" cy="96" r="1.5" />
-          <circle cx="300" cy="120" r="2" />
-          <circle cx="120" cy="230" r="1.5" />
-          <circle cx="420" cy="250" r="1.5" />
-          <circle cx="250" cy="200" r="1.2" />
+      <g clipPath={`url(#${windowClip})`}>
+        <rect width="760" height="640" fill={ink.midnight} />
+        <g fill={ink.ivory} className="rise" style={layer(1)}>
+          {[
+            [300, 180],
+            [340, 240],
+            [420, 280],
+            [490, 300],
+            [270, 270],
+            [380, 200],
+            [470, 170],
+          ].map(([x, y]) => (
+            <circle key={`${x}-${y}`} cx={x} cy={y} r="1.8" />
+          ))}
+          <path d="M318 214 l3 -9 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 Z" />
+          <path d="M498 252 l2 -7 l2 7 l7 2 l-7 2 l-2 7 l-2 -7 l-7 -2 Z" />
         </g>
-        <g className="rise transition duration-700 group-hover:-translate-y-2" style={layer(2)}>
+        <g className="rise" style={layer(2)}>
           <circle
-            cx="352"
-            cy="176"
-            r="48"
-            fill="#7E9AB5"
-            opacity="0.6"
+            cx="452"
+            cy="232"
+            r="42"
+            fill={ink.sky}
+            opacity="0.5"
             transform="translate(-6 5)"
           />
-          <circle cx="352" cy="176" r="48" fill="#F2E9D8" />
+          <circle cx="452" cy="232" r="42" fill={ink.ivory} />
         </g>
         <path
-          d="M60 420 Q160 360 260 400 T460 380 V640 H60 Z"
-          fill="#2E5B47"
+          d="M226 400 Q300 360 370 388 T534 372 V608 H226 Z"
+          fill={ink.midnightLight}
           className="rise"
           style={layer(2)}
         />
+        <path
+          d="M226 430 Q310 392 400 420 T534 410 V608 H226 Z"
+          fill={ink.forest}
+          className="rise"
+          style={layer(3)}
+        />
+        <path
+          d="M226 446 Q300 430 380 444 T534 440 V608 H226 Z"
+          fill={ink.forestLight}
+          opacity="0.55"
+        />
         <rect
-          x="60"
-          y="452"
-          width="400"
-          height="188"
-          fill="#26345E"
+          x="226"
+          y="476"
+          width="308"
+          height="132"
+          fill={ink.water}
           className="rise"
           style={layer(3)}
         />
         {/* The bridge and its reflection. */}
-        <g className="rise" style={layer(3)} stroke="#F2E9D8" fill="none" strokeLinecap="round">
-          <path d="M60 452 Q260 300 460 452" strokeWidth="7" />
-          <path d="M60 452 H460" strokeWidth="4" />
-          {[110, 160, 210, 260, 310, 360, 410].map((x) => (
+        <g stroke={ink.ivory} fill="none" strokeLinecap="round" className="rise" style={layer(3)}>
+          <path d="M226 476 Q380 360 534 476" strokeWidth="6" />
+          <path d="M226 476 H534" strokeWidth="4" />
+          {hangers.map((x) => (
             <line
               key={x}
               x1={x}
               x2={x}
-              y1={452 - (1 - ((x - 260) / 200) ** 2) * 76}
-              y2="452"
+              y1={476 - (1 - ((x - 380) / 154) ** 2) * 58}
+              y2="476"
               strokeWidth="2"
             />
           ))}
-          <path d="M60 452 Q260 590 460 452" strokeWidth="3" opacity="0.25" />
-        </g>
-        <g
-          stroke="#F2E9D8"
-          strokeWidth="3"
-          strokeLinecap="round"
-          opacity="0.8"
-          className="rise"
-          style={layer(4)}
-        >
-          <line x1="332" x2="372" y1="486" y2="486" />
-          <line x1="340" x2="364" y1="502" y2="502" />
-          <line x1="346" x2="358" y1="516" y2="516" />
+          <path d="M226 476 Q380 560 534 476" strokeWidth="2" opacity="0.25" />
+          <path d="M398 520 h46 M410 534 h26 M416 546 h14" strokeWidth="2.5" opacity="0.8" />
         </g>
         <rect
-          width="520"
+          width="760"
           height="640"
           filter={`url(#${grain})`}
           opacity="0.18"
@@ -122,29 +190,29 @@ export function HeroArt({ className = '' }: { className?: string }) {
         />
       </g>
 
-      {/* The open book in front, its pages curving like the bridge. */}
+      {/* The open book in front of the window, its pages curving like the bridge. */}
       <g className="rise" style={layer(5)}>
         <path
-          d="M86 640 L92 566 Q180 540 260 578 Q340 540 428 566 L434 640 Z"
-          fill="#18213D"
-          opacity="0.25"
-          transform="translate(0 6)"
+          d="M250 640 L258 586 Q320 560 380 594 Q440 560 502 586 L510 640 Z"
+          fill={ink.midnight}
+          opacity="0.2"
+          transform="translate(0 4)"
         />
-        <path d="M96 600 Q178 560 260 590 L260 640 Q178 612 96 640 Z" fill="#FBF8F1" />
-        <path d="M424 600 Q342 560 260 590 L260 640 Q342 612 424 640 Z" fill="#F2E9D8" />
+        <path d="M264 606 Q322 574 380 600 L380 640 Q322 618 264 640 Z" fill="#FBF8F1" />
+        <path d="M496 606 Q438 574 380 600 L380 640 Q438 618 496 640 Z" fill={ink.ivory} />
         <path
-          d="M96 600 Q178 560 260 590 Q342 560 424 600"
+          d="M264 606 Q322 574 380 600 Q438 574 496 606"
           fill="none"
-          stroke="#18213D"
+          stroke={ink.midnight}
           strokeWidth="2"
         />
-        <g stroke="#18213D" strokeWidth="1.5" opacity="0.35" strokeLinecap="round">
-          <path d="M120 604 Q180 584 240 600" fill="none" />
-          <path d="M120 616 Q180 596 240 612" fill="none" />
-          <path d="M280 600 Q340 584 400 604" fill="none" />
-          <path d="M280 612 Q340 596 400 616" fill="none" />
+        <g stroke={ink.midnight} strokeWidth="1.4" opacity="0.3" fill="none" strokeLinecap="round">
+          <path d="M282 610 Q322 594 364 606" />
+          <path d="M282 622 Q322 606 364 618" />
+          <path d="M396 606 Q438 594 478 610" />
+          <path d="M396 618 Q438 606 478 622" />
         </g>
-        <path d="M262 590 L274 590 L274 640 L268 632 L262 640 Z" fill="#2E5B47" />
+        <path d="M374 600 L386 600 L386 640 L380 632 L374 640 Z" fill={ink.forest} />
       </g>
     </svg>
   )
