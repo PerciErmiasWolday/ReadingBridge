@@ -8,122 +8,122 @@ story, or an honest "The story doesn't tell us this."
 
 ![The ReadingBridge Library](docs/screenshots/library.png)
 
-## Setup
 
-You need Python 3.11+ and Node 20+.
+# ReadingBridge
 
-**Backend** (FastAPI, port 8000)
+**An AI-powered reading companion that helps readers understand what a story implies, without turning reading into another test.**
 
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export OPENAI_API_KEY=sk-...        # your own key; never commit it
-uvicorn main:app --port 8000
-```
+## Why I Built It
 
-`backend/.env.example` lists the two variables the backend reads. The backend does not load a
-`.env` file itself: set them with `export` in the terminal that runs uvicorn. `.env` files are
-git-ignored.
+Reading with my autistic cousin made me notice a problem I hadn't thought much about before. He could read the words in a story, but sometimes the harder part was connecting what those words implied: why a character acted a certain way, what sarcasm meant, or who a pronoun referred to.
 
-**No key?** Run in fake mode instead: `FAKE_LLM=1 uvicorn main:app --port 8000`. This is
-**mock data**: only "Maya's heart beat quickly." gets a canned explanation, every other sentence
-gets "The story doesn't tell us this.", and pasted text gets one canned marker.
+I saw how stopping to ask for explanations interrupted the experience. I wanted to build something that gave him more independence while reading, without making him feel like he was constantly being tested.
 
-**Frontend** (React, port 5173)
+That's where ReadingBridge began.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+I built it around a simple idea: **let the story come first, and offer help only when the reader wants it.**
 
-Open **http://localhost:5173**. The dev server forwards `/api/*` to the backend on port 8000.
+---
 
-**Checks:** in `frontend`: `npm run build`, `npm run lint`, `npm test`, `npm run format:check`.
-In `backend`: `pytest -q`.
+## What ReadingBridge Does
 
-## Sample inputs
+- **Context-aware explanations:** Helps readers understand implied feelings, sarcasm, figurative language, and connections between sentences.
+- **Interactive reading:** Readers can tap a suggested marker or select a sentence to request an explanation.
+- **Evidence-based responses:** The app shows a supporting quote directly from the passage instead of presenting an explanation without context.
+- **Bring your own reading:** Supports original stories, pasted passages, `.txt` files, and text-based PDFs.
+- **Personalized experience:** Includes reading progress, bookmarks, and saved readings in the browser.
 
-- **Library stories** (on the shelf): *The New Student*, *The Science Fair*, *Two Friends at the
-  Park*. Each has markers and an optional quiz per section.
-- **Files to upload** ("Add your own reading" → Upload file):
-  - `backend/samples/new_student.txt` — plain text
-  - `backend/samples/two_friends.pdf` — a PDF with a text layer
-  - `backend/samples/scanned_page.pdf` — a page with no text, to see the "scanned page" message
-- **Passages to paste:**
-  - Idiom: `The test was on Friday, so Kofi hit the books every night. On Thursday he finally felt ready.`
-  - Ambiguous pronoun: `Ben and Sam raced their bikes to the corner shop. He got there first and laughed. Then they bought two cold drinks.`
+---
 
-## How it works
+## The Engineering Challenge
 
-1. **Upload** (`POST /upload`): a `.txt` or text-based `.pdf` (max 2 MB) becomes plain text.
-2. **Prepare** (`POST /prepare`): paragraphs become sections; `split_sentences` numbers every
-   sentence, so the frontend and the model always point at the same sentence ids.
-3. **Markers**: the model suggests which sentences need an inference; code keeps only real ids and
-   known types, one per sentence, at most one per three sentences.
-4. **Explain** (`POST /explain`): the model sees the numbered story and the tapped sentence, and
-   returns a meaning plus a `clue_quote` copied from the story.
-5. **Grounding checks** (`backend/grounding.py`): the quote must appear in the story word for word,
-   answers have length limits, no figurative language, feelings must say "probably". One failed
-   check gets one retry; a second failure shows "The story doesn't tell us this." instead of a guess.
+Generating an explanation with an AI model is relatively easy. Making sure that explanation is actually supported by the story is harder.
 
-The help card opens directly under the sentence, and the quoted evidence is underlined in the story.
+I implemented a **FastAPI backend** that prepares passages, identifies sentences requiring inference, and requests explanations from the **OpenAI API**.
 
-## Evaluation
+I also added validation checks to verify that supporting quotations appear in the original passage and that the model's responses follow specific constraints.
 
-30 hand-written explanation cases (20 dev, 10 holdout) and 5 marker passages, run with
-`backend/eval/run_eval.py`. Details, examples and caveats: [`docs/evaluation.md`](docs/evaluation.md).
+The goal was to make explanations useful without encouraging the model to invent missing information.
 
-| metric | v1 dev | final dev | v1 holdout | final holdout |
-|---|---|---|---|---|
-| passed the grounding checks first try | 18/20 | 20/20 | 10/10 | 10/10 |
-| fell back to "doesn't tell us" | 2/20 | 0/20 | 0/10 | 0/10 |
-| "doesn't say" decision correct | 14/20 | 17/20 | 8/10 | 8/10 |
-| said "doesn't say" when it should | 0/4 | 1/4 | 0/2 | 0/2 |
-| said "doesn't say" wrongly (over-correction) | 2/16 | 0/16 | 0/8 | 0/8 |
-| meaning keyword hit | 11/16 | 11/16 | 8/8 | 6/8 |
-| best clue quoted | 7/16 | 8/16 | 3/8 | 3/8 |
+---
 
-| markers | precision | recall | on stated feelings |
-|---|---|---|---|
-| v1 | 5/13 | 5/14 | 3 |
-| final | 9/13 | 9/14 | 1 |
+## Testing and Evaluation
 
-**These are small, single runs** (`gpt-4o-mini`, temperature 0.2): a difference of one or two cases
-is noise. Keyword matching is approximate. Case-study tests: [`docs/test-results.md`](docs/test-results.md).
+I tested ReadingBridge using **30 hand-written explanation cases** and **five passages for marker placement**. The cases included sarcasm, implied emotions, ambiguous pronouns, missing information, and figurative language.
 
-## Mock data and what is not built
+### Evaluation Results
 
-- **Fake mode** (`FAKE_LLM=1`) uses canned answers from `backend/fake_llm.py`. It is mock data.
-- **My Reading and Progress** show only the reader's own activity. "See an example" shows
-  **sample data**, labelled "Example — sample data, not your reading" wherever it appears.
-- **No OCR.** Scanned PDFs are refused with a message.
-- **PDFs lose paragraph breaks**, so an uploaded PDF usually becomes one section.
-- **No accounts.** Everything (saved readings, progress, bookmarks, settings) lives in this
-  browser's localStorage; nothing is synced.
-- **Ambiguous pronouns still often get a confident guess** (e.g. "'he' refers to Ben" when the
-  story never says). This is the main known weakness; see `docs/evaluation.md`.
+| Metric | Result |
+|---|---|
+| Explanation grounding checks | 30/30 passed on first attempt |
+| Development cases — answerability | 17/20 correct (85%) |
+| Holdout cases — answerability | 8/10 correct (80%) |
+| Evidence selection | Identified as an area for improvement |
 
-## Tools and reused work
+Evidence selection remained a weakness, showing that a technically valid answer is not always the most helpful one.
 
-- **Frontend:** started from the official Vite `react-ts` template. React 19, TypeScript, React
-  Router, Tailwind CSS 3, Lucide icons, Vitest and React Testing Library, ESLint and Prettier.
-- **Fonts** (self-hosted via @fontsource): Instrument Serif, Instrument Sans, Source Serif 4,
-  Atkinson Hyperlegible.
-- **Backend:** FastAPI, uvicorn, Pydantic, pypdf, python-multipart, pytest, httpx.
-- **AI:** the OpenAI API (`gpt-4o-mini`) for explanations and markers.
-- **Backend origin:** the first version of `backend/` was built in a separate session and added in
-  Phase 1. [YOU: confirm who or what built it]
-- **Cover art and illustrations** are original SVG drawings made for this project. The design
-  reference mockups are in `docs/design/`.
+> **Note:** These results come from a small evaluation set rather than a large-scale user study.
 
-## Privacy
+---
 
-No real student work was used: every story and passage in the repository was written for this
-project. A real deployment would need, at least: consent from the school and families; an API
-agreement that does not keep or train on student text; a decision about the explanation log
-(`backend/logs/explain.jsonl` stores the model's answers, which quote the story); clear rules for
-how long anything is kept; and a check against the local rules for children's data. Right now,
-pasted and uploaded text is sent to the backend and to OpenAI to be split, marked and explained.
+## What I Learned
+
+One of the most interesting failures involved the sentence:
+
+> "Ben and Sam raced their bikes to the corner shop. He got there first."
+
+The model confidently identified Ben as the person who arrived first, even though the passage never established that.
+
+That changed how I thought about the project. It wasn't enough for an answer to sound reasonable. For a reading assistant, an unsupported explanation can introduce the very confusion the tool is supposed to resolve.
+
+**Improving how the system handles uncertainty remains one of my main priorities.**
+
+---
+
+## Tech Stack
+
+| Component | Technologies |
+|---|---|
+| Frontend | React, TypeScript, Vite, Tailwind CSS |
+| Backend | Python, FastAPI, Pydantic |
+| AI | OpenAI API, GPT-4o mini |
+| Testing | pytest, Vitest, React Testing Library |
+| Document Processing | pypdf |
+
+---
+
+## Current Limitations
+
+ReadingBridge is a prototype, not a clinically validated reading intervention.
+
+- **Scanned documents:** OCR for scanned PDFs is not currently supported.
+- **Local storage:** Reading progress is stored locally rather than synced across devices.
+- **Ambiguity:** The system needs stronger detection of ambiguous references.
+- **Evidence selection:** Supporting quotes are not always the most informative ones.
+- **Privacy and accessibility:** A real deployment for children would require additional privacy, consent, and accessibility safeguards.
+
+---
+
+## What's Next
+
+I want to:
+
+1. Improve the model's ability to recognize when a passage does not contain enough information.
+2. Strengthen the evidence-selection process.
+3. Improve handling of ambiguous references and unsupported inferences.
+4. Eventually evaluate the reading experience with users through an appropriate consent-based process.
+
+My goal is to build a tool that helps someone continue reading with greater independence, not simply another interface that generates AI responses.
+
+---
+
+## Author
+
+**Perci Wolday**
+
+- [GitHub](https://github.com/PerciErmiasWolday)
+- [LinkedIn](https://www.linkedin.com/in/PerciWolday)
+
+---
+
+*Built with the belief that technology should help people understand more, not make them feel less capable.*
