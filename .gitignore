@@ -14,3 +14,12 @@ backend/logs/
 
 # Design inspiration screenshots (third-party references; not committed)
 /Screenshot *.png
+
+.venv/
+.env
+.env.*
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+.readingbridge_key
